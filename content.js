@@ -12,60 +12,77 @@
   if (window.__forceNewTabInstalled) return;
   window.__forceNewTabInstalled = true;
 
-  // ─────────────────────────────────────────────
-  // Inject into page world to intercept
-  // window.open / history.pushState / replaceState
-  // (content script patches are invisible to page JS)
-  // ─────────────────────────────────────────────
   const pageScript = document.createElement("script");
   pageScript.textContent = `
-(function () {
-  if (window.__forceNewTabPageInstalled) return;
-  window.__forceNewTabPageInstalled = true;
+  (function () {
+    if (window.__forceNewTabPageInstalled) return;
+    window.__forceNewTabPageInstalled = true;
 
-  let pending  = false;
-  let consumed = false;
+    let pending  = false;
+    let consumed = false;
 
-  window.addEventListener("__forceNewTab_activate", function (e) {
-    pending  = e.detail.active;
-    if (e.detail.active) consumed = false;
-  });
+    window.addEventListener("__forceNewTab_activate", function (e) {
+      pending  = e.detail.active;
+      if (e.detail.active) consumed = false;
+    });
 
-  function emit(url) {
-    if (consumed) return;
-    consumed = true;
-    window.dispatchEvent(new CustomEvent("__forceNewTab_url", { detail: { url } }));
-  }
+      function emit(url) {
+        if (consumed) return;
+        consumed = true;
+        window.dispatchEvent(new CustomEvent("__forceNewTab_url", { detail: { url } }));
+      }
 
-  const _open = window.open.bind(window);
-  Object.defineProperty(window, "open", {
-    get: () => function (url, ...args) {
-      if (pending && url) { emit(url); return null; }
-      return _open(url, ...args);
-    },
-    set: () => {},
-    configurable: false
-  });
+      const _open = window.open.bind(window);
+      Object.defineProperty(window, "open", {
+        get: () => function (url, ...args) {
+          if (pending && url) { emit(url); return null; }
+          return _open(url, ...args);
+        },
+        set: () => {},
+                            configurable: false
+      });
 
-  const _push    = history.pushState.bind(history);
-  const _replace = history.replaceState.bind(history);
-  history.pushState = function (state, title, url) {
-    if (pending && url) { emit(String(url)); return; }
-    return _push(state, title, url);
-  };
-  history.replaceState = function (state, title, url) {
-    if (pending && url) { emit(String(url)); return; }
-    return _replace(state, title, url);
-  };
-})();
+      const _push    = history.pushState.bind(history);
+      const _replace = history.replaceState.bind(history);
+      history.pushState = function (state, title, url) {
+        if (pending && url) { emit(String(url)); return; }
+        return _push(state, title, url);
+      };
+      history.replaceState = function (state, title, url) {
+        if (pending && url) { emit(String(url)); return; }
+        return _replace(state, title, url);
+      };
+
+      // ── NEW: location.href / assign / replace ──────────────────────────────
+      const locDesc = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
+      Object.defineProperty(Location.prototype, 'href', {
+        enumerable: true,
+        configurable: true,
+        get: function () { return locDesc.get.call(this); },
+                            set: function (val) {
+                              if (pending && val) { emit(String(val)); return; }
+                              locDesc.set.call(this, val);
+                            }
+      });
+
+      const _assign = window.location.assign.bind(window.location);
+      window.location.assign = function (url) {
+        if (pending && url) { emit(String(url)); return; }
+        return _assign(url);
+      };
+
+      const _locReplace = window.location.replace.bind(window.location);
+      window.location.replace = function (url) {
+        if (pending && url) { emit(String(url)); return; }
+        return _locReplace(url);
+      };
+      // ──────────────────────────────────────────────────────────────────────
+
+  })();
   `;
   (document.head || document.documentElement).prepend(pageScript);
   pageScript.remove();
 
-  // ─────────────────────────────────────────────
-  // Check whether the clicked element has a real
-  // <a href> ancestor the browser can handle itself
-  // ─────────────────────────────────────────────
   function findAnchor(el) {
     let node = el;
     while (node && node !== document.body) {
@@ -79,20 +96,15 @@
     if (!anchor) return false;
     const href = anchor.getAttribute("href");
     if (!href || href === "#" || href.startsWith("javascript:")) return false;
-    // If it has a real navigable href the browser handles middle-click fine
     return true;
   }
 
-  // ─────────────────────────────────────────────
-  // Resolve a URL from data-* attributes only
-  // (used when there's no usable <a href>)
-  // ─────────────────────────────────────────────
   function resolveDataUrl(el) {
     let node = el;
     while (node && node !== document.body) {
       const attrs = [
         "data-href", "data-url", "data-link", "data-target",
-        "data-navigate", "data-route", "data-src", "data-redirect"
+ "data-navigate", "data-route", "data-src", "data-redirect"
       ];
       for (const a of attrs) {
         const v = node.getAttribute?.(a);
@@ -105,9 +117,6 @@
     return null;
   }
 
-  // ─────────────────────────────────────────────
-  // Open tab (one-shot per click)
-  // ─────────────────────────────────────────────
   let clickConsumed = false;
 
   function openTab(url) {
@@ -126,19 +135,13 @@
     openTab(e.detail.url);
   });
 
-  // ─────────────────────────────────────────────
-  // Main handler
-  // ─────────────────────────────────────────────
   document.addEventListener("mousedown", function (e) {
     if (e.button !== 1) return;
     if (e.ctrlKey || e.shiftKey || e.metaKey) return;
 
     const anchor = findAnchor(e.target);
-
-    // ✅ Real link: let the browser do its thing, don't interfere
     if (isRealLink(anchor)) return;
 
-    // 🔲 JS-driven element: take over
     clickConsumed = false;
 
     window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
@@ -154,15 +157,11 @@
     e.preventDefault();
     e.stopImmediatePropagation();
 
-    // Try data-* attributes first
     const dataUrl = resolveDataUrl(e.target);
     if (dataUrl) {
       openTab(dataUrl);
       return;
     }
-
-    // Otherwise wait for page JS to call window.open / history.pushState
-    // (handled by the page-world patches above)
 
   }, true);
 
