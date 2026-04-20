@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Force New Tab",
-  "version": "1.0",
+  "version": "1.3.0",
   "description": "Forces middle-click (MB3) on any element (including JavaScript buttons) to open the page in a new tab.",
   "permissions": [
     "tabs"
