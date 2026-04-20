@@ -53,7 +53,6 @@
         return _replace(state, title, url);
       };
 
-      // ── NEW: location.href / assign / replace ──────────────────────────────
       const locDesc = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
       Object.defineProperty(Location.prototype, 'href', {
         enumerable: true,
@@ -76,7 +75,6 @@
         if (pending && url) { emit(String(url)); return; }
         return _locReplace(url);
       };
-      // ──────────────────────────────────────────────────────────────────────
 
   })();
   `;
@@ -117,6 +115,24 @@
     return null;
   }
 
+  function findChildAnchor(el) {
+    let container = el;
+    for (let i = 0; i < 5; i++) {
+      if (!container || container === document.body) break;
+      container = container.parentElement;
+    }
+    if (!container) return null;
+
+    const anchors = container.querySelectorAll("a[href]");
+    for (const a of anchors) {
+      const href = a.getAttribute("href");
+      if (href && href !== "#" && !href.startsWith("javascript:")) {
+        return href;
+      }
+    }
+    return null;
+  }
+
   let clickConsumed = false;
 
   function openTab(url) {
@@ -142,26 +158,92 @@
     const anchor = findAnchor(e.target);
     if (isRealLink(anchor)) return;
 
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
     clickConsumed = false;
+    const clickTarget = e.target;
+    const clickX = e.clientX;
+    const clickY = e.clientY;
+
+    // Snapshot current URL before click
+    const urlBefore = window.location.href;
 
     window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
       detail: { active: true }
     }));
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-        detail: { active: false }
-      }));
-      clickConsumed = false;
-    }, 500);
 
-    e.preventDefault();
-    e.stopImmediatePropagation();
-
+    // 1. Try data-* attributes first
     const dataUrl = resolveDataUrl(e.target);
     if (dataUrl) {
       openTab(dataUrl);
       return;
     }
+
+    // 2. Try searching inside the container for a child <a href>
+    const childUrl = findChildAnchor(e.target);
+    if (childUrl) {
+      openTab(childUrl);
+      return;
+    }
+
+    // 3. Wait for page JS hooks to capture a URL
+    setTimeout(() => {
+      if (!clickConsumed) {
+        // 4. Try click replay
+        window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
+          detail: { active: true }
+        }));
+
+        const opts = {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          button: 0,
+          buttons: 1,
+          clientX: clickX,
+          clientY: clickY
+        };
+        try {
+          clickTarget.dispatchEvent(new MouseEvent("mousedown", opts));
+          clickTarget.dispatchEvent(new MouseEvent("mouseup", opts));
+          clickTarget.dispatchEvent(new MouseEvent("click", opts));
+        } catch (err) {
+          console.error("[ForceNewTab] Click replay failed:", err);
+        }
+
+        // 5. Watch for URL change, snap back and open in new tab
+        const snapBack = setInterval(() => {
+          const urlNow = window.location.href;
+          if (urlNow !== urlBefore) {
+            clearInterval(snapBack);
+            history.replaceState(null, "", urlBefore);
+            if (!clickConsumed) {
+              openTab(urlNow);
+            }
+            window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
+              detail: { active: false }
+            }));
+            clickConsumed = false;
+          }
+        }, 10);
+
+        // Give up after 600ms if nothing changed
+        setTimeout(() => {
+          clearInterval(snapBack);
+          window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
+            detail: { active: false }
+          }));
+          clickConsumed = false;
+        }, 600);
+
+      } else {
+        window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
+          detail: { active: false }
+        }));
+        clickConsumed = false;
+      }
+    }, 500);
 
   }, true);
 
