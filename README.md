@@ -14,7 +14,7 @@ Force New Tab solves this transparently, without breaking normal browser behavio
 
 When you middle-click an element, the extension works through a chain of fallbacks in order, stopping as soon as it finds a URL to open:
 
-1. **Real links are ignored** — if the clicked element is a genuine `<a href>` link, the extension does nothing and lets the browser handle it natively as it normally would.
+1. **Real links are ignored** — if the clicked element is a genuine `<a href>` link, the extension does nothing and lets the browser handle it natively. (Opens in new tab by default)
 
 2. **`data-*` attribute scan** — checks the clicked element and its ancestors for common URL attributes like `data-href`, `data-url`, `data-link`, `data-navigate` etc.
 
@@ -93,10 +93,12 @@ No data is collected, stored, or transmitted. The extension has no network acces
 - Added click replay fallback
 
 ### v1.1.0
-- Initial public release
 - `window.open`, `history.pushState` interception
 - Real link passthrough
 - `data-*` attribute fallback
+
+### v1.0.0
+- Initial public release
 
 ---
 
