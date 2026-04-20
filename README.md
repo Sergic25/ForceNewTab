@@ -81,19 +81,6 @@ No data is collected, stored, or transmitted. The extension has no network acces
 
 ---
 
-## How It Differs From Similar Extensions
-
-Most "force new tab" extensions use an aggressive crash strategy — they intentionally throw JavaScript errors to kill the site's script execution after intercepting a navigation call. While effective, this approach can break page functionality as a side effect.
-
-Force New Tab uses a cleaner architecture:
-
-- A **CustomEvent bridge** between the content script world and the page world, rather than crashing scripts
-- **`mousedown`** as the trigger event rather than `auxclick`, giving more control before the browser acts
-- **`browser.runtime.sendMessage`** to open tabs via the background script, which is more reliable than calling `window.open` directly
-- Fallbacks are applied in order from least to most invasive, so the cleanest solution is always tried first
-
----
-
 ## Version History
 
 ### v1.3.0
