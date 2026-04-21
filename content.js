@@ -1,9 +1,20 @@
 /**
  * Force New Tab - content.js
  *
- * Only intercepts middle-clicks on JS-driven elements (buttons, divs, etc.)
+ * Intercepts middle-clicks on JS-driven elements (buttons, divs, etc.)
  * that don't have a real <a> ancestor. Plain anchor links are left alone —
  * the browser already opens those in a new tab on middle-click.
+ *
+ * Fallback chain:
+ *   1. data-* attributes
+ *   2. Child <a href> scan
+ *   3. Page JS hooks (window.open, history API, location.*) — via page-world.js
+ *   4. Click replay (synthetic mouse events)
+ *   5. URL change watcher (snap back + open captured URL)
+ *   6. Tab duplication (last resort)
+ *
+ * Communicates with page-world.js via a MessageChannel so hostile page JS
+ * cannot interfere with activation signals.
  */
 
 (function () {
@@ -12,74 +23,78 @@
   if (window.__forceNewTabInstalled) return;
   window.__forceNewTabInstalled = true;
 
-  const pageScript = document.createElement("script");
-  pageScript.textContent = `
-  (function () {
-    if (window.__forceNewTabPageInstalled) return;
-    window.__forceNewTabPageInstalled = true;
+  // ─── MessageChannel setup ──────────────────────────────────────────────────
+  const channel = new MessageChannel();
+  const port    = channel.port1;
 
-    let pending  = false;
-    let consumed = false;
+  port.onmessage = function (e) {
+    if (e.data === "ready") {
+      console.debug("[ForceNewTab] page-world connected via MessageChannel");
+    } else if (e.data && e.data.url) {
+      resolve(e.data.url);
+    }
+  };
 
-    window.addEventListener("__forceNewTab_activate", function (e) {
-      pending  = e.detail.active;
-      if (e.detail.active) consumed = false;
-    });
+  if (typeof window.__forceNewTabConnect === "function") {
+    window.__forceNewTabConnect(channel.port2);
+  } else {
+    window.__forceNewTabPendingPort = channel.port2;
+  }
 
-      function emit(url) {
-        if (consumed) return;
-        consumed = true;
-        window.dispatchEvent(new CustomEvent("__forceNewTab_url", { detail: { url } }));
-      }
+  function activatePageWorld(on) {
+    port.postMessage(on ? "activate" : "deactivate");
+  }
 
-      const _open = window.open.bind(window);
-      Object.defineProperty(window, "open", {
-        get: () => function (url, ...args) {
-          if (pending && url) { emit(url); return null; }
-          return _open(url, ...args);
-        },
-        set: () => {},
-                            configurable: false
-      });
+  // ─── Unified resolution state ──────────────────────────────────────────────
+  let clickSession = 0;
 
-      const _push    = history.pushState.bind(history);
-      const _replace = history.replaceState.bind(history);
-      history.pushState = function (state, title, url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _push(state, title, url);
-      };
-      history.replaceState = function (state, title, url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _replace(state, title, url);
-      };
+  let state = {
+    resolved:       false,
+    active:         false,
+    urlBefore:      null,
+    clickTarget:    null,
+    clickX:         0,
+    clickY:         0,
+    snapBackTimer:  null,
+    giveUpTimer:    null,
+  };
 
-      const locDesc = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
-      Object.defineProperty(Location.prototype, 'href', {
-        enumerable: true,
-        configurable: true,
-        get: function () { return locDesc.get.call(this); },
-                            set: function (val) {
-                              if (pending && val) { emit(String(val)); return; }
-                              locDesc.set.call(this, val);
-                            }
-      });
+  function resetState() {
+    clickSession++;
+    clearInterval(state.snapBackTimer);
+    clearTimeout(state.giveUpTimer);
+    state.resolved      = false;
+    state.active        = false;
+    state.urlBefore     = null;
+    state.clickTarget   = null;
+    state.clickX        = 0;
+    state.clickY        = 0;
+    state.snapBackTimer = null;
+    state.giveUpTimer   = null;
+    activatePageWorld(false);
+  }
 
-      const _assign = window.location.assign.bind(window.location);
-      window.location.assign = function (url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _assign(url);
-      };
+  function resolve(url) {
+    if (state.resolved) return false;
+    if (!url) return false;
+    state.resolved = true;
+    try {
+      const abs = new URL(url, document.baseURI).href;
+      browser.runtime.sendMessage({ action: "openTab", url: abs });
+    } catch {
+      // Malformed URL — still mark resolved so nothing else fires
+    }
+    resetState();
+    return true;
+  }
 
-      const _locReplace = window.location.replace.bind(window.location);
-      window.location.replace = function (url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _locReplace(url);
-      };
+  function giveUp(reason) {
+    if (state.resolved) return;
+    console.debug("[ForceNewTab] Gave up:", reason);
+    resetState();
+  }
 
-  })();
-  `;
-  (document.head || document.documentElement).prepend(pageScript);
-  pageScript.remove();
+  // ─── DOM helpers ───────────────────────────────────────────────────────────
 
   function findAnchor(el) {
     let node = el;
@@ -97,24 +112,24 @@
     return true;
   }
 
+  // Layer 1: data-* attributes on element or ancestors
   function resolveDataUrl(el) {
+    const attrs = [
+      "data-href", "data-url", "data-link", "data-target",
+ "data-navigate", "data-route", "data-src", "data-redirect"
+    ];
     let node = el;
     while (node && node !== document.body) {
-      const attrs = [
-        "data-href", "data-url", "data-link", "data-target",
- "data-navigate", "data-route", "data-src", "data-redirect"
-      ];
       for (const a of attrs) {
         const v = node.getAttribute?.(a);
-        if (v && v !== "#" && !v.startsWith("javascript:")) {
-          return v;
-        }
+        if (v && v !== "#" && !v.startsWith("javascript:")) return v;
       }
       node = node.parentElement;
     }
     return null;
   }
 
+  // Layer 2: scan nearby container for a child <a href>
   function findChildAnchor(el) {
     let container = el;
     for (let i = 0; i < 5; i++) {
@@ -122,127 +137,98 @@
       container = container.parentElement;
     }
     if (!container) return null;
-
-    const anchors = container.querySelectorAll("a[href]");
-    for (const a of anchors) {
+    for (const a of container.querySelectorAll("a[href]")) {
       const href = a.getAttribute("href");
-      if (href && href !== "#" && !href.startsWith("javascript:")) {
-        return href;
-      }
+      if (href && href !== "#" && !href.startsWith("javascript:")) return href;
     }
     return null;
   }
 
-  let clickConsumed = false;
-
-  function openTab(url) {
-    if (!url || clickConsumed) return false;
-    try {
-      const abs = new URL(url, document.baseURI).href;
-      clickConsumed = true;
-      browser.runtime.sendMessage({ action: "openTab", url: abs });
-      return true;
-    } catch {
-      return false;
-    }
+  // ─── Duplication helper ────────────────────────────────────────────────────
+  function requestDuplication(x, y) {
+    state.resolved = true;
+    activatePageWorld(false);
+    browser.runtime.sendMessage({ action: "duplicateAndClick", x, y });
+    clearInterval(state.snapBackTimer);
+    clearTimeout(state.giveUpTimer);
   }
 
-  window.addEventListener("__forceNewTab_url", function (e) {
-    openTab(e.detail.url);
-  });
-
+  // ─── Main mousedown handler ────────────────────────────────────────────────
   document.addEventListener("mousedown", function (e) {
     if (e.button !== 1) return;
     if (e.ctrlKey || e.shiftKey || e.metaKey) return;
 
     const anchor = findAnchor(e.target);
-    if (isRealLink(anchor)) return;
+    if (isRealLink(anchor)) return;   // browser handles real anchors natively
 
     e.preventDefault();
     e.stopImmediatePropagation();
 
-    clickConsumed = false;
-    const clickTarget = e.target;
-    const clickX = e.clientX;
-    const clickY = e.clientY;
+    resetState();
+    state.urlBefore   = window.location.href;
+    state.clickTarget = e.target;
+    state.clickX      = e.clientX;
+    state.clickY      = e.clientY;
 
-    // Snapshot current URL before click
-    const urlBefore = window.location.href;
+    const savedTarget = e.target;
+    const savedX      = e.clientX;
+    const savedY      = e.clientY;
+    const savedUrl    = window.location.href;
 
-    window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-      detail: { active: true }
-    }));
-
-    // 1. Try data-* attributes first
+    // ── Layer 1: data-* attributes ───────────────────────────────────────────
     const dataUrl = resolveDataUrl(e.target);
-    if (dataUrl) {
-      openTab(dataUrl);
-      return;
-    }
+    if (dataUrl && resolve(dataUrl)) return;
 
-    // 2. Try searching inside the container for a child <a href>
+    // ── Layer 2: child anchor scan ───────────────────────────────────────────
     const childUrl = findChildAnchor(e.target);
-    if (childUrl) {
-      openTab(childUrl);
-      return;
-    }
+    if (childUrl && resolve(childUrl)) return;
 
-    // 3. Wait for page JS hooks to capture a URL
-    setTimeout(() => {
-      if (!clickConsumed) {
-        // 4. Try click replay
-        window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-          detail: { active: true }
-        }));
+    // ── Layers 3–6: async fallback chain ─────────────────────────────────────
+    state.active = true;
+    activatePageWorld(true);
 
-        const opts = {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          button: 0,
-          buttons: 1,
-          clientX: clickX,
-          clientY: clickY
-        };
-        try {
-          clickTarget.dispatchEvent(new MouseEvent("mousedown", opts));
-          clickTarget.dispatchEvent(new MouseEvent("mouseup", opts));
-          clickTarget.dispatchEvent(new MouseEvent("click", opts));
-        } catch (err) {
-          console.error("[ForceNewTab] Click replay failed:", err);
-        }
+    const thisSession = ++clickSession;
 
-        // 5. Watch for URL change, snap back and open in new tab
-        const snapBack = setInterval(() => {
-          const urlNow = window.location.href;
-          if (urlNow !== urlBefore) {
-            clearInterval(snapBack);
-            history.replaceState(null, "", urlBefore);
-            if (!clickConsumed) {
-              openTab(urlNow);
-            }
-            window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-              detail: { active: false }
-            }));
-            clickConsumed = false;
-          }
-        }, 10);
+    setTimeout(function () {
+      if (clickSession !== thisSession) return; // already resolved, bail out
 
-        // Give up after 600ms if nothing changed
-        setTimeout(() => {
-          clearInterval(snapBack);
-          window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-            detail: { active: false }
-          }));
-          clickConsumed = false;
-        }, 600);
+      // ── Layer 4: click replay ──────────────────────────────────────────────
+      activatePageWorld(true);
 
-      } else {
-        window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-          detail: { active: false }
-        }));
-        clickConsumed = false;
+      const opts = {
+        bubbles: true, cancelable: true, view: window,
+        button: 0, buttons: 1,
+        clientX: savedX, clientY: savedY
+      };
+      try {
+        savedTarget.dispatchEvent(new MouseEvent("mousedown", opts));
+        savedTarget.dispatchEvent(new MouseEvent("mouseup",   opts));
+        savedTarget.dispatchEvent(new MouseEvent("click",     opts));
+      } catch (err) {
+        console.error("[ForceNewTab] Click replay failed:", err);
       }
+
+      // ── Layer 5: URL change watcher ────────────────────────────────────────
+      state.snapBackTimer = setInterval(function () {
+        if (clickSession !== thisSession) {
+          clearInterval(state.snapBackTimer);
+          return;
+        }
+        const urlNow = window.location.href;
+        if (urlNow !== savedUrl) {
+          clearInterval(state.snapBackTimer);
+          history.replaceState(null, "", savedUrl);
+          resolve(urlNow);
+        }
+      }, 10);
+
+      // ── Layer 6: tab duplication ───────────────────────────────────────────
+      state.giveUpTimer = setTimeout(function () {
+        clearInterval(state.snapBackTimer);
+        if (clickSession !== thisSession) return;
+        requestDuplication(savedX, savedY);
+      }, 600);
+
     }, 500);
 
   }, true);
