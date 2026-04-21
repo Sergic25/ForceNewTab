@@ -4,7 +4,7 @@ A Firefox extension that forces middle-click on any element to open in a new tab
 
 ## The Problem
 
-Modern websites are built as Single Page Applications (SPAs) using frameworks like React, Vue, and Angular. Navigation on these sites is handled entirely by JavaScript rather than standard `<a href>` links. As a result, middle-clicking elements like cards, buttons, and tiles either does nothing or navigates the current tab instead of opening a new one.
+Modern websites are often built as Single Page Applications (SPAs) using frameworks like React, Vue, and Angular. Navigation on these sites is handled entirely by JavaScript rather than standard `<a href>` links. As a result, middle-clicking elements like cards, buttons, and tiles either does nothing or navigates the current tab instead of opening a new one.
 
 Force New Tab solves this transparently, without breaking normal browser behaviour.
 
@@ -60,7 +60,7 @@ The extension is designed to work on as many sites as possible. Tested on:
 ## Installation
 
 ### From Firefox Add-ons (AMO)
-*(Link will be added once the extension is approved)*
+https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search
 
 ### Manual Installation (for testing)
 1. Download or clone this repository
