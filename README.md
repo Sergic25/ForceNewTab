@@ -60,7 +60,7 @@ The extension is designed to work on as many sites as possible. Tested on:
 ## Installation
 
 ### From Firefox Add-ons (AMO)
-https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search
+https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/
 
 ### Manual Installation (for testing)
 1. Download or clone this repository
