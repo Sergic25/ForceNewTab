@@ -138,16 +138,20 @@
     if (workerInput) return Promise.resolve({ready: false, activated: false, userInteracted: true, reason: "copy-input"});
     if (!validRequest(message)) return Promise.resolve({ready: false, activated: false, reason: "invalid-or-disabled"});
     if (message.type === "fnt-isolate-prepare") {
-      if (document.readyState !== "complete") return Promise.resolve({ready: false, activated: false, reason: "document-loading"});
+      if (document.readyState !== "complete") { prepared = null; return Promise.resolve({ready: false, activated: false, reason: "document-loading"}); }
       const match = read(() => globalThis.FNTIsolationTarget.find(message.target, document));
       if (!match?.ok || !match.target) { prepared = null; return Promise.resolve({ready: false, activated: false, reason: "target-not-ready"}); }
       const fingerprint = read(() => JSON.stringify(message.target));
-      if (!fingerprint) return Promise.resolve({ready: false, activated: false, reason: "invalid-target"});
-      prepared = {nonce: message.nonce, target: match.target, fingerprint};
-      return Promise.resolve({ok: true, ready: true, activated: false, documentNonce});
+      if (!fingerprint) { prepared = null; return Promise.resolve({ready: false, activated: false, reason: "invalid-target"}); }
+      // A document can stay loaded while its framework replaces the button.
+      // Only the same concrete node and descriptor keep the readiness token.
+      if (!prepared || prepared.nonce !== message.nonce || prepared.target !== match.target || prepared.fingerprint !== fingerprint)
+        prepared = {nonce: message.nonce, target: match.target, fingerprint, preparationNonce: nonce()};
+      return Promise.resolve({ok: true, ready: true, activated: false, documentNonce, preparationNonce: prepared.preparationNonce});
     }
     const fingerprint = read(() => JSON.stringify(message.target));
     if (!prepared || prepared.nonce !== message.nonce || message.documentNonce !== documentNonce ||
+        message.preparationNonce !== prepared.preparationNonce ||
         prepared.fingerprint !== fingerprint || !sameTarget(prepared.target, message.target) || document.readyState !== "complete")
       return Promise.resolve({activated: false, reason: "prepared-target-changed"});
     if (used.size >= 16) return Promise.resolve({activated: false, reason: "document-activation-limit"});

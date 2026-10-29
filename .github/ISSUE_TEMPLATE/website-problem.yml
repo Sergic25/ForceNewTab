@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please check existing issues first. Use public links or a redacted page description. Do not post passwords, cookies, account numbers, private messages, or an unreviewed diagnostic report.
+        Please check existing issues first. Use public links or describe private pages without account details. Do not post passwords, cookies, account numbers, private messages, or an unreviewed diagnostic report. The public extension does not include a click recorder; a written description is enough.
   - type: input
     id: website
     attributes:
@@ -24,13 +24,13 @@ body:
     id: result
     attributes:
       label: What happened?
-      description: Did a new tab open, was its destination correct, and did the original page change? Include what you expected.
+      description: Did a new tab open, was its destination correct, and did the original page change? Include what you expected and how long you waited.
     validations:
       required: true
   - type: input
     id: versions
     attributes:
-      label: Firefox and addon versions
+      label: Firefox and extension versions
       description: Include your operating system and whether you use Firefox, Developer Edition, or another Firefox-based browser.
     validations:
       required: true
@@ -42,6 +42,6 @@ body:
   - type: textarea
     id: report
     attributes:
-      label: Optional diagnostic report
-      description: You can record one middle-click in the addon Preferences. Review it before sharing; URL paths can contain private identifiers even when query strings are removed.
+      label: Diagnostic report from the separate testing branch, if available
+      description: This is not required. Only the testing branch has the manual recorder. Review any report before sharing; address paths can contain private identifiers even when query strings are removed.
       render: json

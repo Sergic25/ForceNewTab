@@ -46,8 +46,13 @@
     const beforeURL = address(message?.beforeURL), senderURL = address(sender?.url);
     return beforeURL && senderURL ? senderURL === beforeURL : undefined;
   }
+  function activationReason(response) {
+    return ["activation-dispatched", "activation-threw", "already-activated"].includes(response?.reason)
+      ? response.reason : "activation-unconfirmed";
+  }
   function status(op, state, reason, copyKept = false) {
-    const summary = {state, reason, activated: op.mayActivated === true, copyKept: copyKept === true, updatedAt: now(), build: "2.0.0"};
+    const summary = {state, reason, activated: op.mayActivated === true, copyKept: copyKept === true, updatedAt: now(), build: "2.0.1"};
+    if (state === "activated" || state === "uncertain") summary.effectConfirmed = false;
     if (typeof op.senderAddressMatchesCurrent === "boolean") summary.senderAddressMatchesCurrent = op.senderAddressMatchesCurrent;
     try {
       const version = browser.runtime.getManifest?.().version;
@@ -162,16 +167,22 @@
         // response also claims that input prevented activation.
         if (response?.activated === true) {
           op.mayActivated = true;
-          await status(op, "activated", "pressed-in-copy", keep(op));
-          return {fallback: false, activated: true, reason: "pressed-in-copy"};
+          const reason = activationReason(response);
+          await status(op, reason === "activation-unconfirmed" ? "uncertain" : "activated", reason, keep(op));
+          return {fallback: false, activated: true, reason};
         }
         if (response?.userInteracted === true) {
           op.userTouched = true; stop(op, "copy-input");
           return await preFailure(op, "copy-input", true);
         }
-        const documentNonce = response?.documentNonce;
-        if (response?.ok === true && response.ready === true && typeof documentNonce === "string" && documentNonce.length > 0 && documentNonce.length <= 100) {
-          if (prepared === documentNonce && now() - preparedAt >= 250) {
+        const documentNonce = response?.documentNonce, preparationNonce = response?.preparationNonce;
+        if (response?.ok === true && response.ready === true &&
+            typeof documentNonce === "string" && documentNonce.length > 0 && documentNonce.length <= 100 &&
+            typeof preparationNonce === "string" && preparationNonce.length > 0 && preparationNonce.length <= 100) {
+          // Wait for the same document and actual matched control to settle.
+          // This gives delayed page initialization time; it cannot prove handlers are ready.
+          const stable = prepared?.documentNonce === documentNonce && prepared?.preparationNonce === preparationNonce;
+          if (stable && now() - preparedAt >= 1500) {
             if (!await sourceUnchanged(op)) return await preFailure(op, "source-changed");
             const currentCopy = await bounded(op, () => browser.tabs.get(op.workerId));
             if (!matchesSource(currentCopy, op.source) || op.userTouched) {
@@ -183,7 +194,7 @@
             let result;
             try {
               result = await bounded(op, () => browser.tabs.sendMessage(op.workerId, {type: "fnt-isolate-execute", nonce: op.nonce,
-                beforeURL: op.beforeURL, target: message.target, documentNonce}, {frameId: 0}));
+                beforeURL: op.beforeURL, target: message.target, documentNonce, preparationNonce}, {frameId: 0}));
             } catch {
               await status(op, "uncertain", "activation-response-unavailable", keep(op));
               return {fallback: false, activated: true, reason: "activation-response-unavailable"};
@@ -204,11 +215,11 @@
               op.mayActivated = false;
               return await preFailure(op, "copy-target-changed");
             }
-            const acknowledged = result?.activated === true;
-            await status(op, acknowledged ? "activated" : "uncertain", acknowledged ? "pressed-in-copy" : "activation-unconfirmed", keep(op));
-            return {fallback: false, activated: true, reason: acknowledged ? "pressed-in-copy" : "activation-unconfirmed"};
+            const reason = result?.activated === true ? activationReason(result) : "activation-unconfirmed";
+            await status(op, reason === "activation-unconfirmed" ? "uncertain" : "activated", reason, keep(op));
+            return {fallback: false, activated: true, reason};
           }
-          if (prepared !== documentNonce) { prepared = documentNonce; preparedAt = now(); }
+          if (!stable) { prepared = {documentNonce, preparationNonce}; preparedAt = now(); }
         } else { prepared = null; preparedAt = 0; }
         await delay(op, 250);
       }

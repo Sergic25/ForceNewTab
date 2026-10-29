@@ -1,44 +1,77 @@
 # Force New Tab
 
-**2.0.0 development candidate.** All 20 packaged automated suites pass; the final Firefox trial is still pending. This is not yet the stable Mozilla release. For the existing public release, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/).
+**Middle-click more of the web.** Force New Tab helps links, images, cards and JavaScript-driven buttons open their destination in a new background tab—even when a website normally ignores middle-click or treats it like a left-click.
 
-**[Report a problem or suggest an improvement on GitHub](https://github.com/Sergic25/ForceNewTab/issues/new/choose).** Describe the exact control you middle-clicked and what happened in both tabs.
+**Version 2.0.1 · Firefox 147 or newer.** This GitHub release contains the public extension source and unsigned package. Publishing on GitHub does not update Firefox installations: the Mozilla submission and signed update are separate steps. The [Firefox Add-ons listing](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/) provides the version currently available through Mozilla.
 
-## How it works
+**A website still not working?** [Open a GitHub issue](https://github.com/Sergic25/ForceNewTab/issues/new/choose) or describe it in the [extension's Firefox reviews](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/). Include the exact item you middle-clicked and what happened.
 
-Force New Tab tries to open middle-click destinations in background tabs using the same rules across permitted websites.
+## Using the extension
 
-1. Actual links, clear card/title relationships and displayed images are checked first.
-2. For an unresolved control, a clearly owned address stored by the website can provide a direct destination without pressing the original control.
-3. Otherwise, an eligible control can use a background copy: the page reloads in a new tab, the addon finds the matching control and presses it once there.
-4. If copying is unavailable or definitely fails before activation, discovery on the original page may reveal the destination. Once a copied click might have run, it is never automatically repeated on the original.
+Middle-click the item you want to open. No keyboard shortcut or website configuration is needed. All opening methods work automatically.
 
-These methods run **automatically while the toolbar is ON**. There are no separate feature switches; settings left by older test builds do not disable them. Click the fist to toggle everything: **purple = ON**, **grey = OFF**. The toolbar state is saved.
+Click the fist in Firefox's toolbar to switch the whole extension:
 
-## Try this preview
+- **Purple: ON.** Force New Tab handles supported middle-clicks.
+- **Grey: OFF.** Firefox and the website handle them normally.
 
-Requires **Firefox 147 or newer**.
+Your choice is remembered. Pin the fist through Firefox's Extensions menu if needed. Reload pages after installing or replacing the extension. Ordinary left-clicks work normally.
 
-1. Download and extract this branch's source, or clone the repository.
-2. Open **about:debugging** → **This Firefox** → **Load Temporary Add-on**, then select **manifest.json** in the extension folder.
-3. Reload the test page and keep the toolbar purple.
+The What's New page opens once per version. Reopen it through the extension's Preferences in Add-ons Manager.
 
-Temporary installation ends when Firefox restarts. No Mozilla-signed package of this preview has been produced.
+## How it finds the destination
 
-Use ordinary middle-click; Shift is unnecessary. Direct destinations should open promptly. A background copy can take **up to 15 seconds**. Switching tabs or viewing the copy is fine. Clicking or typing inside it stops automatic replay. Input on the original page, navigation, closing a tab or disabling the addon can also cancel preparation.
+Many websites make cards or buttons clickable without ordinary links. Force New Tab tries these approaches in order:
 
-## Limits and privacy
+1. **Read an available destination.** It looks for the clicked link, a clear relationship between a card and its title link, or the displayed image address. These destinations open promptly, without pressing the original control.
+2. **Look for an address belonging to the control.** Some websites store the destination in the information behind that particular button or card. A clear match can also open directly.
+3. **Try the control in a background copy.** When no destination is available, an eligible control can use a new copy of the page. The extension finds the matching control there, waits for it to settle, then presses it once. This can open a login dialog inside the copied page even when there is no separate login address.
+4. **Learn from the original page as a last resort.** If copying is unavailable or definitely fails before a click is attempted, the extension may activate the original control and watch for its destination. That can change the original page too.
 
-Opening the destination is the priority; keeping the original untouched cannot always be guaranteed. Original-page discovery may run website code that changes the interface or sends requests before navigation is stopped. Inspecting unusual website objects can also run website code. Copies cannot clone a running program, so temporary panels, unsaved state or the same feed item may be missing. Some controls have no destination or reject simulated clicks. Websites can open extra popups, take focus or synchronize account changes across tabs. Firefox-protected pages and sites without granted access are unsupported.
+The same rules apply across permitted websites. There are no Spotify, Bluesky or Canva address lists to maintain. Opening the intended destination is the priority; keeping the original page unchanged is the next goal.
 
-There is **no telemetry or automatic report upload**. Settings and manually requested diagnostic reports stay in Firefox's local extension storage. Websites and copies still make ordinary network requests.
+## When a new tab takes longer
 
-Permissions: **cookies** preserves Firefox container context; **storage** saves settings and local reports; **webNavigation** observes navigation for discovery and diagnostics. Website access allows control inspection and middle-click handling.
+A background copy may need **up to 15 seconds** to load and prepare. Direct links and other known destinations do not wait for this process.
 
-## Testing and reporting
+You can switch tabs or look at the copy while it prepares. Clicking or typing inside the copy stops the automatic press, so it does not interfere with your own input. Interacting with the original page, navigating, closing a tab or turning the extension OFF can also cancel preparation. Once a click might have reached the copy, the extension will not automatically repeat it on the original page.
 
-After GitHub upload, complete the [manual trial](TESTING-WEBSITES.md) before public submission to Mozilla. Compare OFF and ON, check both tabs, and report versions, clicked item, expected destination and actual result. Use public or redacted URLs; omit private account addresses and credentials.
+## What cannot be guaranteed
 
-Diagnostic recording is manual: choose **Record next middle-click** in Preferences only when needed. Review identifying address paths before sharing a report through [GitHub Issues](https://github.com/Sergic25/ForceNewTab/issues/new/choose).
+No extension can turn every website control into a normal link. A button may open only a temporary panel, require information that was not recreated in the copy, or refuse a simulated click. Forms and editing controls may be left alone. Some popup controls can work in a new copy; others may leave a copy with no popup.
 
-Run **node tests/run.cjs** for 20 simulated DOM/browser suites. All 20 pass, including fresh settings, old saved settings, toolbar OFF, direct-opening priority and copy cancellation. See [verification status](TEST-RESULTS.md). These do not establish live Firefox success or universal compatibility. Earlier notes remain in [docs/history](docs/history/DEVELOPMENT-NOTES.md).
+A copied tab reloads the page; it is not an exact snapshot of the running website. Unsaved work, temporary menus and a changing feed may differ. If the final fallback runs on the original page, the website can change its appearance or send a request before the destination is captured. Websites may also open their own extra windows or synchronize changes across tabs.
+
+Firefox's protected pages and pages where the extension has no access are unsupported. Image destinations may be the displayed preview rather than a full-resolution original.
+
+## What changed in 2.0.1
+
+This release overhauls destination finding, adds automatic background-copy handling for difficult controls, and improves how copies wait for a button to settle. It also introduces the larger, centered purple and grey fist artwork and clearer website-reporting links.
+
+During development, the maintainer reported successful results for tested Bluesky controls, Spotify artwork/navigation, X news cards, Questrade account navigation and **Canva's Login popup**. These results concern particular controls, not entire sites. Automated checks use simulated browser behavior; see [test results](TEST-RESULTS.md) and the [manual test list](TESTING-WEBSITES.md).
+
+## Installation and testing
+
+For the Mozilla-distributed version, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/). An unsigned GitHub package is not a permanent install in standard Firefox.
+
+To load this source temporarily:
+
+1. Download and extract the source ZIP.
+2. Open `about:debugging` → **This Firefox** → **Load Temporary Add-on**.
+3. Select `manifest.json` from the extracted folder, then reload the pages you want to test.
+
+Temporary installations end when Firefox restarts.
+
+The public release has no click recorder or separate feature switches. A separate [testing branch](https://github.com/Sergic25/ForceNewTab/tree/testing) retains the manual diagnostic tools for investigating difficult websites. It is outside the stable Releases downloads and can be loaded temporarily in the same way.
+
+## Reporting and privacy
+
+Use [GitHub Issues](https://github.com/Sergic25/ForceNewTab/issues/new/choose) or [Firefox reviews](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/). Give the website, exact clicked item, browser and extension versions, expected result, and what happened in both tabs. Say whether signing in is required. Share public links or a description of private pages; omit account details and credentials.
+
+There is no telemetry or automatic report upload. Settings and copy-operation status stay in your browser. Websites and copied tabs still make their normal network requests. Website access lets the extension inspect controls; storage saves local state; navigation access helps detect destinations; cookie permission preserves Firefox container context.
+
+## Development and license
+
+Run `node tests/run.cjs` for the public build's automated checks. Historical development notes are kept in [docs/history](docs/history/DEVELOPMENT-NOTES.md). Force New Tab is released under the [MIT license](LICENSE).
+
+

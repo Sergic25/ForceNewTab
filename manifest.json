@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Force New Tab",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Opens middle-click destinations using generic link, card, image and navigation rules across permitted websites.",
   "permissions": [
     "cookies",
@@ -15,7 +15,6 @@
     "scripts": [
       "discovery.js",
       "background.js",
-      "diagnostic-background.js",
       "isolation-target.js",
       "isolation-background.js"
     ]
@@ -26,13 +25,9 @@
         "<all_urls>"
       ],
       "js": [
-        "inspection.js",
-        "button-evidence.js",
-        "diagnostics.js",
         "resolver.js",
         "component-link.js",
         "app-data.js",
-        "outcome-trace.js",
         "isolation-target.js",
         "isolation-content.js",
         "content.js"

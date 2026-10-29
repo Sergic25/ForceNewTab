@@ -1,19 +1,26 @@
-# Force New Tab 2.0.0 — verification status
+# Force New Tab 2.0.1 — public release verification
 
-Verified on October 28, 2026. App-data and background-copy methods run automatically under the existing toolbar ON/OFF control. Stored legacy feature flags are ignored. The final Firefox trial and Mozilla release checks are still pending.
+Prepared on October 28, 2026. All **15 public suites pass** using `node tests/run.cjs`. These use simulated DOM/browser APIs; they do not claim independent end-to-end Firefox coverage.
 
-## Current result
+## Public and testing builds
 
-**All 20 packaged suites pass** using node tests/run.cjs. These are simulated DOM/browser tests, not native Firefox integration tests, and do not establish universal compatibility.
+The public manifest loads only the nine navigation modules. The six diagnostic-only modules and their five specific test suites are absent from the public source and runtime package. The separate [testing branch](https://github.com/Sergic25/ForceNewTab/tree/testing) retains the recorder and its original 20 passing suites, outside normal Releases.
 
-The two remaining flow suites expected old optional switches to disable automatic methods. Their fixtures now distinguish fresh settings from saved legacy false values. Both must behave automatically. The existing compatibility cases remain, with added checks for toolbar OFF, OFF then ON during a pending copy, direct destinations taking priority, and rejecting stale fallback or repeat activation.
+All nine navigation modules are byte-identical between the public source and the diagnostic build. Removing recording does not alter the direct-opening, copied-page, final discovery or toolbar paths. No additional permissions or website-specific routing rules were introduced.
 
-Passing coverage includes 42 app-data checks, 91 app-data compatibility/integration checks, 56 copy-content checks, 83 copy-background checks, 52 copy integration checks, 42 combined gesture checks, 35 shadow-tree flow checks, 57 diagnostic checks, 29 outcome-background checks and 18 report-UI checks. Counts overlap and must not be added into an end-to-end total. All remaining core/resolver/component/locator/migration suites pass; the legacy suite reproduces four known faults in the original source.
+## Checks completed
 
-The final test correction changes tests and documentation only. The original core, resolver, component-link, discovery, toolbar background and target-matching modules remain byte-identical to the verified 4.2.6 icon candidate. The feature-gating modules and reporting UI were intentionally changed for automatic handling. There are no new permissions, website-specific rules or changes to the approved icon files.
+- The public migration audit has six checks, including the explicit manifest layout, approved icon fingerprints, historical navigation/test preservation and absence of recorder modules.
+- The 36 shadow-flow checks include loading the actual public manifest's complete content-script list. They verify copying still works without diagnostic globals or recording messages.
+- Existing tests cover direct links/cards/images, app-owned destinations, eligible copied controls, early tab switching, input cancellation, toolbar OFF, stored legacy settings, context validation, once-only activation and the final discovery fallback.
+- The copied-button tests cover the same actual button remaining stable for at least 1.5 seconds, replacement invalidating preparation, and the fixed 15-second overall deadline. A possible activation is never automatically retried on the source page.
+- Existing background tests retain once-per-version update-page opening and duplicate-update/restart checks.
+- Purple ON and grey OFF artwork is supplied at the declared sizes. All 26 packaged icon files match the approved no-lines export. No icon paths or toolbar mappings changed when the recorder was removed.
 
-A definitive toolbar-settings read failure declines copying and permits bounded source discovery only after fresh source validation. Pending reads, known toolbar OFF, changed context and uncertain/complete copied activation do not gain that fallback.
+## Real-world feedback
 
-The icons retain their verified dimensions/hashes and toolbar-state checks. No live Firefox verification was performed for this automatic-handling candidate. The maintainer's final normal-browser trial, signed installation and upgrade checks, and Mozilla validation remain release work. The test package is unsigned.
+The maintainer confirmed that the Canva Login control now opens its popup in the copied tab. Earlier feedback reported success for tested Bluesky controls, Spotify artwork/navigation, X news cards and the Questrade account-navigation control. These are specific reported results, not guarantees for every control on those sites. Signed-in Sharesies and Instagram Likes remain unverified.
 
-Earlier verification records are preserved in docs/history/TEST-RESULTS.md and describe earlier builds.
+## Distribution status and remaining work
+
+This is a public GitHub source/unsigned-package release. The diagnostic build is retained on its testing branch, not tagged as a normal Release. Mozilla submission, signing, persistent-install checks and final signed-upgrade verification are separate work and have not been completed. The extension cannot guarantee that every website supplies a destination, accepts the simulated click, recreates its state in a copy, or leaves the original page unchanged.
