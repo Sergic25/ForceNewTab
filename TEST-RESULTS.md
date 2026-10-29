@@ -1,6 +1,6 @@
 # Automatic-handling draft — verification status
 
-This draft uses the development version label 4.2.6. Its app-data and background-copy methods now run automatically under the existing toolbar ON/OFF control. Stored legacy feature flags are ignored. The proposed public version is 2.0.0, pending final release preparation.
+This draft uses the approved version number 2.0.0. Its app-data and background-copy methods now run automatically under the existing toolbar ON/OFF control. Stored legacy feature flags are ignored. Release preparation and the final browser trial are still pending.
 
 ## Current result
 
@@ -15,7 +15,7 @@ Passing targeted coverage includes 42 app-data checks, 91 app-data compatibility
 
 The original core, resolver, component-link, discovery, toolbar background and target-matching modules remain byte-identical to the verified 4.2.6 icon candidate. The feature-gating modules and reporting UI are intentionally changed. There are no new permissions, website-specific rules or changes to the approved icon files.
 
-The icons retain their verified dimensions/hashes and toolbar-state checks. No live Firefox verification was performed for this automatic-handling draft. After GitHub review, the maintainer intends a final normal-browser trial before Mozilla public submission. Signed installation and upgrade checks, public version numbering and Mozilla validation remain release work.
+The icons retain their verified dimensions/hashes and toolbar-state checks. No live Firefox verification was performed for this automatic-handling draft. After GitHub review, the maintainer intends a final normal-browser trial before Mozilla public submission. Signed installation and upgrade checks, Mozilla validation remain release work.
 
 Earlier verification records are preserved in docs/history/TEST-RESULTS.md and describe earlier builds.
 

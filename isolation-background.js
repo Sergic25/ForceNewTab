@@ -47,7 +47,7 @@
     return beforeURL && senderURL ? senderURL === beforeURL : undefined;
   }
   function status(op, state, reason, copyKept = false) {
-    const summary = {state, reason, activated: op.mayActivated === true, copyKept: copyKept === true, updatedAt: now(), build: "4.2.6"};
+    const summary = {state, reason, activated: op.mayActivated === true, copyKept: copyKept === true, updatedAt: now(), build: "2.0.0"};
     if (typeof op.senderAddressMatchesCurrent === "boolean") summary.senderAddressMatchesCurrent = op.senderAddressMatchesCurrent;
     try {
       const version = browser.runtime.getManifest?.().version;

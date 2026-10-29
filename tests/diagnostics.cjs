@@ -34,7 +34,7 @@ function content(o={}) {
     window:{addEventListener(t,fn,flags) {(listeners[t]||=[]).push({fn,flags});}},
     browser:{storage:{onChanged:{addListener:fn=>changes.push(fn)},local:{get(defaults) {
       gets.push(defaults);return o.get?o.get(defaults):Promise.resolve({fntRecordNextClick:o.initial||null});
-    }}},runtime:{getManifest:()=>({version:o.runtimeVersion||'4.2.6'}),sendMessage(m) {sent.push(clean(m));return o.send?o.send(m):Promise.resolve({saved:true});}}}});
+    }}},runtime:{getManifest:()=>({version:o.runtimeVersion||'2.0.0'}),sendMessage(m) {sent.push(clean(m));return o.send?o.send(m):Promise.resolve({saved:true});}}}});
   vm.runInContext(source,context,{filename:'diagnostics.js'});
   return {api:context.FNTDiagnostics,listeners,sent,gets,
     change(v,area='local') {for(const fn of changes)fn({fntRecordNextClick:{newValue:v}},area);},
@@ -341,7 +341,7 @@ test('known routes bypass copy audit and audit failures preserve safe reports',(
  const unknown=content({targetModule});const b=unknown.api.snapshot(event([el('button')]));assert.equal(b.copyEligibility.reason,'read-error');assert.doesNotMatch(JSON.stringify(b),/PRIVATE_AUDIT/);
 });
 test('report separates source build from installed runtime version',()=>{
- const h=content({runtimeVersion:'4.2.2'});const r=h.api.snapshot(event());assert.equal(r.diagnosticVersion,'4.2.6');assert.equal(r.extensionVersion,'4.2.2');
+ const h=content({runtimeVersion:'4.2.2'});const r=h.api.snapshot(event());assert.equal(r.diagnosticVersion,'2.0.0');assert.equal(r.extensionVersion,'4.2.2');
 });
 // 4.2.6 deliberately updates approved icon fingerprints; navigation hashes stay historical.
 test('routing matches baseline apart from explicit isolation Shift and icon-only guards',()=>{

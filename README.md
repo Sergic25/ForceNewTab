@@ -1,6 +1,6 @@
 # Force New Tab
 
-**Development preview 4.2.6.** This branch is being prepared for review. The proposed next public version, **2.0.0**, remains pending review and release preparation. For the existing public release, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/).
+**2.0.0 development candidate.** The version number is confirmed; verification and the final browser trial are still pending. This is not yet the stable Mozilla release. For the existing public release, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/).
 
 **[Report a problem or suggest an improvement on GitHub](https://github.com/Sergic25/ForceNewTab/issues/new/choose).** Describe the exact control you middle-clicked and what happened in both tabs.
 

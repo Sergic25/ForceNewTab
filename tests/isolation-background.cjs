@@ -40,7 +40,7 @@ let count=0;async function test(name,fn){await fn();count++;console.log('PASS is
  await test('malformed IDs, unsafe URLs and descriptors are rejected',async()=>{for(const update of [{requestId:''},{requestId:'x'.repeat(101)},{beforeURL:'about:blank'},{beforeURL:'https://u:secret@generic.test/start'},{target:{version:1,valid:false}},{target:{version:1,valid:true,padding:'x'.repeat(8000)}}]){const h=harness();const r=await h.send({...h.request(),...update});assert.equal(r.reason,'invalid-request');assert.equal(h.duplicates.length,0);}});
  await test('valid decline saves a fixed reason without copying arbitrary fields',async()=>{
   const h=harness();await flush();const r=await h.send({type:'fnt-isolate-declined',reason:'closed-shadow-root',label:'PRIVATE_LABEL',url:'https://private.test/account',nonce:'PRIVATE_NONCE'});await flush();
-  assert.equal(r.ok,true);assert.deepEqual(JSON.parse(JSON.stringify(h.state.fntLastIsolationResult)),{state:'declined',reason:'closed-shadow-root',activated:false,copyKept:false,updatedAt:h.clock.now(),build:'4.2.6'});assert.doesNotMatch(JSON.stringify(h.writes),/PRIVATE|private.test/);assert.equal(h.duplicates.length,0);assert.equal(h.messages.length,0);
+  assert.equal(r.ok,true);assert.deepEqual(JSON.parse(JSON.stringify(h.state.fntLastIsolationResult)),{state:'declined',reason:'closed-shadow-root',activated:false,copyKept:false,updatedAt:h.clock.now(),build:'2.0.0'});assert.doesNotMatch(JSON.stringify(h.writes),/PRIVATE|private.test/);assert.equal(h.duplicates.length,0);assert.equal(h.messages.length,0);
  });
  await test('declines from other extensions frames and invalid tabs cannot change storage',async()=>{
   for(const override of [{id:'foreign'},{frameId:1},{tab:{id:-1,windowId:2}},{tab:{id:1,windowId:-1}}]){const h=harness();await flush();const r=await h.send({type:'fnt-isolate-declined',reason:'read-error'},{...h.sender,...override});assert.equal(r.ok,false);assert.equal(h.writes.length,0);}
@@ -183,11 +183,11 @@ let count=0;async function test(name,fn){await fn();count++;console.log('PASS is
  await test('status stores no target labels, URLs or request nonces',async()=>{const h=harness();await finish(h,h.send());const value=JSON.stringify(h.writes);assert.doesNotMatch(value,/generic\.test|gesture-1|nonce-|document-1|target/);assert.equal(h.state.fntLastIsolationResult.copyKept,true);});
  await test('storage write failures do not turn one activation into a retry',async()=>{const h=harness({failStorage:true});const r=await finish(h,h.send());assert.equal(r.activated,true);assert.equal(h.messages.filter(x=>x.message.type==='fnt-isolate-execute').length,1);});
  await test('a same-origin sender URL from an earlier SPA route is accepted using the current tab address',async()=>{
-  const h=harness({manifestVersion:'4.2.6'}),beforeURL='https://generic.test/app/item?view=current#selected';h.tabs.get(1).url=beforeURL;
+  const h=harness({manifestVersion:'2.0.0'}),beforeURL='https://generic.test/app/item?view=current#selected';h.tabs.get(1).url=beforeURL;
   const sender={...h.sender,url:'https://generic.test/landing?old=yes#initial',origin:'https://generic.test'};
   const r=await finish(h,h.send({...h.request(),beforeURL},sender));assert.equal(r.activated,true);assert.equal(h.duplicates.length,1);assert.equal(h.duplicates[0].properties.active,false);
   assert.equal(h.messages.filter(x=>x.message.type==='fnt-isolate-execute').length,1);assert.equal(h.messages.at(-1).message.beforeURL,beforeURL);
-  assert.equal(h.state.fntLastIsolationResult.senderAddressMatchesCurrent,false);assert.equal(h.state.fntLastIsolationResult.build,'4.2.6');assert.equal(h.state.fntLastIsolationResult.manifestVersion,'4.2.6');
+  assert.equal(h.state.fntLastIsolationResult.senderAddressMatchesCurrent,false);assert.equal(h.state.fntLastIsolationResult.build,'2.0.0');assert.equal(h.state.fntLastIsolationResult.manifestVersion,'2.0.0');
  });
  await test('same-origin sender query and fragment differences do not become stale route errors',async()=>{
   for(const senderURL of ['https://generic.test/start?old=1','https://generic.test/start#old','https://generic.test/elsewhere?old=1#old']){
@@ -216,7 +216,7 @@ let count=0;async function test(name,fn){await fn();count++;console.log('PASS is
  });
  await test('authenticated invalid start requests save precise fixed rejection reasons',async()=>{
   const cases=[[{requestId:''},'invalid-request-id'],[{beforeURL:'about:blank'},'invalid-source-address'],[{target:{version:1,valid:false}},'invalid-target-descriptor'],[{target:{version:1,valid:true,padding:'x'.repeat(8000)}},'request-too-large']];
-  for(const [update,reason]of cases){const h=harness({manifestVersion:'4.2.6'});const r=await h.send({...h.request(),...update});await flush();assert.equal(r.reason,'invalid-request');assert.equal(r.rejectionReason,reason);assert.equal(r.fallback,false);assert.equal(h.state.fntLastIsolationResult.state,'rejected');assert.equal(h.state.fntLastIsolationResult.reason,reason);assert.equal(h.state.fntLastIsolationResult.build,'4.2.6');assert.equal(h.state.fntLastIsolationResult.manifestVersion,'4.2.6');assert.equal(h.duplicates.length,0);}
+  for(const [update,reason]of cases){const h=harness({manifestVersion:'2.0.0'});const r=await h.send({...h.request(),...update});await flush();assert.equal(r.reason,'invalid-request');assert.equal(r.rejectionReason,reason);assert.equal(r.fallback,false);assert.equal(h.state.fntLastIsolationResult.state,'rejected');assert.equal(h.state.fntLastIsolationResult.reason,reason);assert.equal(h.state.fntLastIsolationResult.build,'2.0.0');assert.equal(h.state.fntLastIsolationResult.manifestVersion,'2.0.0');assert.equal(h.duplicates.length,0);}
  });
  await test('cyclic own requests reject without retaining their fields or exception text',async()=>{
   const h=harness(),request=h.request();request.circular=request;request.private='PRIVATE_CONTENT';const r=await h.send(request);await flush();assert.equal(r.rejectionReason,'invalid-request-shape');assert.equal(h.state.fntLastIsolationResult.state,'rejected');assert.doesNotMatch(JSON.stringify(h.writes),/PRIVATE_CONTENT|circular/);assert.equal(h.duplicates.length,0);
@@ -228,7 +228,7 @@ let count=0;async function test(name,fn){await fn();count++;console.log('PASS is
  });
  await test('status metadata omits unavailable or malformed manifest versions and never records sender addresses',async()=>{
   for(const manifestVersion of ['PRIVATE_VERSION_TOO_LONG','PRIVATE',{},undefined]){
-   const h=harness({manifestVersion});await h.send({...h.request(),requestId:''},{...h.sender,url:'https://generic.test/private-route?PRIVATE=1'});await flush();const status=h.state.fntLastIsolationResult;assert.equal(status.manifestVersion,undefined);assert.equal(status.build,'4.2.6');assert.equal(status.senderAddressMatchesCurrent,false);assert.doesNotMatch(JSON.stringify(h.writes),/PRIVATE|private-route/);
+   const h=harness({manifestVersion});await h.send({...h.request(),requestId:''},{...h.sender,url:'https://generic.test/private-route?PRIVATE=1'});await flush();const status=h.state.fntLastIsolationResult;assert.equal(status.manifestVersion,undefined);assert.equal(status.build,'2.0.0');assert.equal(status.senderAddressMatchesCurrent,false);assert.doesNotMatch(JSON.stringify(h.writes),/PRIVATE|private-route/);
   }
  });
  console.log(count+' isolation background checks passed (mocked tabs, not native Firefox).');

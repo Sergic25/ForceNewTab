@@ -67,7 +67,7 @@
     }
     const report = {
       schemaVersion: 1,
-      diagnosticVersion: "4.2.6",
+      diagnosticVersion: "2.0.0",
       extensionVersion: read(() => {
         const version = browser.runtime.getManifest?.().version;
         return typeof version === "string" && /^[0-9A-Za-z._-]{1,32}$/.test(version) ? version : null;

@@ -89,7 +89,7 @@
     if (!live(recording) || recording.token !== message.recordingToken) return {saved: false};
     const report = {...message.report, frameId: sender.frameId};
     const summary = report.outcome?.version === 1 ? content(report.outcome.content, true) : null;
-    if (summary) report.outcome = {version: 1, content: summary, background: {correlationOnly: true, observerBuild: "4.2.6", events: [], counts: {}, limited: false}};
+    if (summary) report.outcome = {version: 1, content: summary, background: {correlationOnly: true, observerBuild: "2.0.0", events: [], counts: {}, limited: false}};
     else if (report.outcome) delete report.outcome;
     if (JSON.stringify(report).length > 22000) return {saved: false};
     await browser.storage.local.set({[KEY]: null, [REPORT]: report});

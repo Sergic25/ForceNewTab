@@ -35,7 +35,7 @@ test('legacy initial report preserves original one-shot storage behavior',async(
 });
 test('initial trace replaces supplied background with a clean observer record',async()=>{
  const h=harness(),outcome=clean(h.report.outcome);outcome.background={secret:'PRIVATE'};assert.equal((await h.start({outcome})).saved,true);
- assert.deepEqual(h.state.fntLastClickReport.outcome.background,{correlationOnly:true,observerBuild:"4.2.6",events:[],counts:{},limited:false});assert.doesNotMatch(JSON.stringify(h.state),/PRIVATE/);
+ assert.deepEqual(h.state.fntLastClickReport.outcome.background,{correlationOnly:true,observerBuild:"2.0.0",events:[],counts:{},limited:false});assert.doesNotMatch(JSON.stringify(h.state),/PRIVATE/);
 });
 test('queued core observation follows initial report even before its storage await resolves',async()=>{
  const h=harness();const first=h.start();assert.equal(h.core('fnt-arm'),undefined);assert.equal(h.core('fnt-captured',{url:'https://destination.test/path?q=PRIVATE#PRIVATE'}),undefined);await first;await flush();
