@@ -1,22 +1,19 @@
-# Automatic-handling draft — verification status
+# Force New Tab 2.0.0 — verification status
 
-This draft uses the approved version number 2.0.0. Its app-data and background-copy methods now run automatically under the existing toolbar ON/OFF control. Stored legacy feature flags are ignored. Release preparation and the final browser trial are still pending.
+Verified on October 28, 2026. App-data and background-copy methods run automatically under the existing toolbar ON/OFF control. Stored legacy feature flags are ignored. The final Firefox trial and Mozilla release checks are still pending.
 
 ## Current result
 
-18 of the 20 packaged suites pass. The complete runner still exits unsuccessfully: two flow suites retain expectations for the removed opt-in switch. They have not been bypassed or counted as passing:
+**All 20 packaged suites pass** using node tests/run.cjs. These are simulated DOM/browser tests, not native Firefox integration tests, and do not establish universal compatibility.
 
-- tests/shift-isolation-flow.cjs stops at its legacy experiment-OFF case.
-- tests/shadow-isolation-flow.cjs stops at its legacy experiment-OFF case.
+The two remaining flow suites expected old optional switches to disable automatic methods. Their fixtures now distinguish fresh settings from saved legacy false values. Both must behave automatically. The existing compatibility cases remain, with added checks for toolbar OFF, OFF then ON during a pending copy, direct destinations taking priority, and rejecting stale fallback or repeat activation.
 
-These test contracts must be updated and the full runner must pass before this draft is considered ready to merge. Later cases in those suites were not reached during this run; there is no blanket regression-free claim.
+Passing coverage includes 42 app-data checks, 91 app-data compatibility/integration checks, 56 copy-content checks, 83 copy-background checks, 52 copy integration checks, 42 combined gesture checks, 35 shadow-tree flow checks, 57 diagnostic checks, 29 outcome-background checks and 18 report-UI checks. Counts overlap and must not be added into an end-to-end total. All remaining core/resolver/component/locator/migration suites pass; the legacy suite reproduces four known faults in the original source.
 
-Passing targeted coverage includes 42 app-data checks, 91 app-data compatibility/integration checks, 56 copy-content checks, 83 copy-background checks, 51 copy integration checks, 57 diagnostic checks, 29 outcome-background checks and 18 report-UI checks. Counts overlap compatibility coverage and must not be added into an end-to-end total. The remaining core/resolver/component/locator/migration suites pass.
+The final test correction changes tests and documentation only. The original core, resolver, component-link, discovery, toolbar background and target-matching modules remain byte-identical to the verified 4.2.6 icon candidate. The feature-gating modules and reporting UI were intentionally changed for automatic handling. There are no new permissions, website-specific rules or changes to the approved icon files.
 
-The original core, resolver, component-link, discovery, toolbar background and target-matching modules remain byte-identical to the verified 4.2.6 icon candidate. The feature-gating modules and reporting UI are intentionally changed. There are no new permissions, website-specific rules or changes to the approved icon files.
+A definitive toolbar-settings read failure declines copying and permits bounded source discovery only after fresh source validation. Pending reads, known toolbar OFF, changed context and uncertain/complete copied activation do not gain that fallback.
 
-The icons retain their verified dimensions/hashes and toolbar-state checks. No live Firefox verification was performed for this automatic-handling draft. After GitHub review, the maintainer intends a final normal-browser trial before Mozilla public submission. Signed installation and upgrade checks, Mozilla validation remain release work.
+The icons retain their verified dimensions/hashes and toolbar-state checks. No live Firefox verification was performed for this automatic-handling candidate. The maintainer's final normal-browser trial, signed installation and upgrade checks, and Mozilla validation remain release work. The test package is unsigned.
 
 Earlier verification records are preserved in docs/history/TEST-RESULTS.md and describe earlier builds.
-
-A definitive toolbar-settings read failure now declines copying and permits bounded source discovery only after fresh source validation. Pending reads, known toolbar OFF, changed context and uncertain/complete copied activation do not gain that fallback.

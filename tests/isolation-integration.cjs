@@ -34,6 +34,10 @@ const extraCases=String.raw`
     isolatedGesture(h,target);await flush();assert.equal(h.isolationCalls.length,1);assert.equal(h.isolationCalls[0].gesture.shiftKey,true);assert.equal(h.isolationCalls[0].target,target);
     assert.equal(target.activations,undefined);assert.equal(h.sent.some(m=>m.type==='fnt-arm'),false);
   });
+  await test('isolation claimed ordinary middle click never activates the source',async()=>{
+    const h=harness();await flush();const target=el('button',{type:'button'});h.isolationResult=Promise.resolve({fallback:false,activated:true});
+    h.gesture(target);await flush();assert.equal(h.isolationCalls.length,1);assert.equal(h.isolationCalls[0].gesture.shiftKey,false);assert.equal(target.activations,undefined);assert.equal(h.sent.some(m=>m.type==='fnt-arm'),false);
+  });
   await test('isolation confirmed pre-activation failure runs one legacy fallback',async()=>{
     const h=harness();await flush();const target=el('button',{type:'button'});h.isolationResult=Promise.resolve({fallback:true,activated:false});
     isolatedGesture(h,target);await flush();assert.equal(target.activations,1);assert.equal(h.sent.filter(m=>m.type==='fnt-arm').length,1);
@@ -91,7 +95,7 @@ const extraCases=String.raw`
  assert.equal(simulatedProcess.exitCode,0,errors.join('\n'));
  assert.equal(errors.length,0,errors.join('\n'));
  const actual=lines.filter(line=>line.startsWith('PASS generalized integration')).length;
- assert.equal(actual,51,'All32originalchecks plus19newhookchecks must run');
+ assert.equal(actual,52,'All32originalchecks plus20hookchecks must run');
  assert.equal(fs.readFileSync(filename,'utf8'),before,'Original integration suite must remain unchanged');
- console.log('51 isolation integration checks passed (32 unchanged compatibility replays + 19 new hook checks; mocked DOM/browser).');
+ console.log('52 isolation integration checks passed (32 unchanged compatibility replays + 20 hook checks; mocked DOM/browser).');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,6 +1,6 @@
 # Force New Tab
 
-**2.0.0 development candidate.** The version number is confirmed; verification and the final browser trial are still pending. This is not yet the stable Mozilla release. For the existing public release, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/).
+**2.0.0 development candidate.** All 20 packaged automated suites pass; the final Firefox trial is still pending. This is not yet the stable Mozilla release. For the existing public release, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/).
 
 **[Report a problem or suggest an improvement on GitHub](https://github.com/Sergic25/ForceNewTab/issues/new/choose).** Describe the exact control you middle-clicked and what happened in both tabs.
 
@@ -41,4 +41,4 @@ After GitHub upload, complete the [manual trial](TESTING-WEBSITES.md) before pub
 
 Diagnostic recording is manual: choose **Record next middle-click** in Preferences only when needed. Review identifying address paths before sharing a report through [GitHub Issues](https://github.com/Sergic25/ForceNewTab/issues/new/choose).
 
-Run **node tests/run.cjs** for 20 simulated DOM/browser suites. This draft currently passes 18; two still contain removed-switch expectations and need updating before merge. See [verification status](TEST-RESULTS.md). These do not establish live Firefox success or universal compatibility. Earlier notes remain in [docs/history](docs/history/DEVELOPMENT-NOTES.md).
+Run **node tests/run.cjs** for 20 simulated DOM/browser suites. All 20 pass, including fresh settings, old saved settings, toolbar OFF, direct-opening priority and copy cancellation. See [verification status](TEST-RESULTS.md). These do not establish live Firefox success or universal compatibility. Earlier notes remain in [docs/history](docs/history/DEVELOPMENT-NOTES.md).
