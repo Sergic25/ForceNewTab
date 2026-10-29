@@ -1,0 +1,6 @@
+dist/
+node_modules/
+*.xpi
+*.zip
+.DS_Store
+Thumbs.db

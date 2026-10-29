@@ -1,107 +1,44 @@
 # Force New Tab
 
-A Firefox extension that forces middle-click on any element to open in a new tab — including JavaScript-driven buttons, cards, and links that normally ignore middle click.
+**Development preview 4.2.6.** This branch is being prepared for review. The proposed next public version, **2.0.0**, remains pending review and release preparation. For the existing public release, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/).
 
-## The Problem
+**[Report a problem or suggest an improvement on GitHub](https://github.com/Sergic25/ForceNewTab/issues/new/choose).** Describe the exact control you middle-clicked and what happened in both tabs.
 
-Modern websites are often built as Single Page Applications (SPAs) using frameworks like React, Vue, and Angular. Navigation on these sites is handled entirely by JavaScript rather than standard `<a href>` links. As a result, middle-clicking elements like cards, buttons, and tiles either does nothing or navigates the current tab instead of opening a new one.
+## How it works
 
-Force New Tab solves this transparently, without breaking normal browser behaviour.
+Force New Tab tries to open middle-click destinations in background tabs using the same rules across permitted websites.
 
----
+1. Actual links, clear card/title relationships and displayed images are checked first.
+2. For an unresolved control, a clearly owned address stored by the website can provide a direct destination without pressing the original control.
+3. Otherwise, an eligible control can use a background copy: the page reloads in a new tab, the addon finds the matching control and presses it once there.
+4. If copying is unavailable or definitely fails before activation, discovery on the original page may reveal the destination. Once a copied click might have run, it is never automatically repeated on the original.
 
-## How It Works
+These methods run **automatically while the toolbar is ON**. There are no separate feature switches; settings left by older test builds do not disable them. Click the fist to toggle everything: **purple = ON**, **grey = OFF**. The toolbar state is saved.
 
-When you middle-click an element, the extension works through a chain of fallbacks in order, stopping as soon as it finds a URL to open:
+## Try this preview
 
-1. **Real links are ignored** — if the clicked element is a genuine `<a href>` link, the extension does nothing and lets the browser handle it natively. (Opens in new tab by default)
+Requires **Firefox 147 or newer**.
 
-2. **`data-*` attribute scan** — checks the clicked element and its ancestors for common URL attributes like `data-href`, `data-url`, `data-link`, `data-navigate` etc.
+1. Download and extract this branch's source, or clone the repository.
+2. Open **about:debugging** → **This Firefox** → **Load Temporary Add-on**, then select **manifest.json** in the extension folder.
+3. Reload the test page and keep the toolbar purple.
 
-3. **Child anchor search** — searches inside the card container for any `<a href>` link. Useful for sites like Spotify where the image and text are separate elements inside the same card, but only the text has a real link.
+Temporary installation ends when Firefox restarts. No Mozilla-signed package of this preview has been produced.
 
-4. **Page world hooks** — intercepts standard JavaScript navigation methods:
-   - `window.open`
-   - `history.pushState`
-   - `history.replaceState`
-   - `location.href`
-   - `location.assign`
-   - `location.replace`
+Use ordinary middle-click; Shift is unnecessary. Direct destinations should open promptly. A background copy can take **up to 15 seconds**. Switching tabs or viewing the copy is fine. Clicking or typing inside it stops automatic replay. Input on the original page, navigation, closing a tab or disabling the addon can also cancel preparation.
 
-5. **Click replay** — if nothing is captured after 500ms, the extension re-fires `mousedown`, `mouseup`, and `click` events on the element to trigger its JavaScript handler, then intercepts the resulting navigation.
+## Limits and privacy
 
-6. **URL polling** — as a last resort, monitors `window.location.href` for changes after the click replay fires. If the URL changes, the new URL is opened in a new tab and the current tab is snapped back to its original URL.
+Opening the destination is the priority; keeping the original untouched cannot always be guaranteed. Original-page discovery may run website code that changes the interface or sends requests before navigation is stopped. Inspecting unusual website objects can also run website code. Copies cannot clone a running program, so temporary panels, unsaved state or the same feed item may be missing. Some controls have no destination or reject simulated clicks. Websites can open extra popups, take focus or synchronize account changes across tabs. Firefox-protected pages and sites without granted access are unsupported.
 
----
+There is **no telemetry or automatic report upload**. Settings and manually requested diagnostic reports stay in Firefox's local extension storage. Websites and copies still make ordinary network requests.
 
-## Compatibility
+Permissions: **cookies** preserves Firefox container context; **storage** saves settings and local reports; **webNavigation** observes navigation for discovery and diagnostics. Website access allows control inspection and middle-click handling.
 
-The extension is designed to work on as many sites as possible. Tested on:
+## Testing and reporting
 
-| Site | Status | Method used |
-|------|--------|-------------|
-| YouTube | ✅ Works | Page world hooks |
-| Reddit | ✅ Works | Page world hooks |
-| Twitter / X | ✅ Works | Page world hooks |
-| Spotify | ✅ Works | Child anchor search |
-| GitHub | ✅ Works | Real links / page world hooks |
-| Twitch | ✅ Works | Page world hooks |
-| Pinterest (cards) | ✅ Works | Child anchor search |
-| Pinterest (filter buttons) | ⚠️ Partial | URL polling — current tab also navigates, use back button to restore |
+After GitHub upload, complete the [manual trial](TESTING-WEBSITES.md) before public submission to Mozilla. Compare OFF and ON, check both tabs, and report versions, clicked item, expected destination and actual result. Use public or redacted URLs; omit private account addresses and credentials.
 
-### Known Limitations
+Diagnostic recording is manual: choose **Record next middle-click** in Preferences only when needed. Review identifying address paths before sharing a report through [GitHub Issues](https://github.com/Sergic25/ForceNewTab/issues/new/choose).
 
-- **Strict CSP sites** — some sites (like Pinterest) block page-world script injection via Content Security Policy. The extension degrades gracefully, falling back to DOM-based methods that don't require page-world access.
-- **Modal/dialog triggers** — buttons that open dialogs rather than navigating to a new page have no URL to open. The extension correctly does nothing in these cases.
-- **Internal framework routers** — some sites use heavily customised internal routers (like Spotify's) that bypass all standard navigation methods. The child anchor search and click replay fallbacks handle most of these cases.
-
----
-
-## Installation
-
-### From Firefox Add-ons (AMO)
-https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/
-
-### Manual Installation (for testing)
-1. Download or clone this repository
-2. Open Firefox and go to `about:debugging`
-3. Click **This Firefox**
-4. Click **Load Temporary Add-on**
-5. Select the `manifest.json` file from the repository
-
----
-
-## Permissions
-
-The extension requests the following permissions:
-
-- **`tabs`** — required to open URLs in new background tabs
-
-No data is collected, stored, or transmitted. The extension has no network access and makes no external requests. All processing happens locally in your browser.
-
----
-
-## Version History
-
-### v1.3.0
-- Added URL polling fallback for sites that bypass all JavaScript hooks
-- Added child anchor search for Spotify-style card components
-- Added `history.replaceState` interception
-
-### v1.2.0
-- Added `location.href`, `location.assign`, and `location.replace` interception
-- Added click replay fallback
-
-### v1.1.0
-- `window.open`, `history.pushState` interception
-- Real link passthrough
-- `data-*` attribute fallback
-
-### v1.0.0
-- Initial public release
-
----
-
-## License
-
-MIT
+Run **node tests/run.cjs** for 20 simulated DOM/browser suites. This draft currently passes 18; two still contain removed-switch expectations and need updating before merge. See [verification status](TEST-RESULTS.md). These do not establish live Firefox success or universal compatibility. Earlier notes remain in [docs/history](docs/history/DEVELOPMENT-NOTES.md).

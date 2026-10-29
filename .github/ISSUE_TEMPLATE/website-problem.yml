@@ -1,0 +1,47 @@
+name: Website problem
+description: Report a middle-click that opens the wrong page, changes the original, or does nothing.
+title: "[Website] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check existing issues first. Use public links or a redacted page description. Do not post passwords, cookies, account numbers, private messages, or an unreviewed diagnostic report.
+  - type: input
+    id: website
+    attributes:
+      label: Website and page
+      description: A public URL, or the domain and a description if the page is private.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you middle-click?
+      description: Describe how to find the item and the exact part clicked, such as its title, image, or blank card area. Mention whether sign-in is needed.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened?
+      description: Did a new tab open, was its destination correct, and did the original page change? Include what you expected.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Firefox and addon versions
+      description: Include your operating system and whether you use Firefox, Developer Edition, or another Firefox-based browser.
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: Toolbar and copied-tab behavior
+      description: Was the toolbar ON (purple)? If a copy was preparing, did you switch tabs or click/type inside it? No other feature switches are needed.
+  - type: textarea
+    id: report
+    attributes:
+      label: Optional diagnostic report
+      description: You can record one middle-click in the addon Preferences. Review it before sharing; URL paths can contain private identifiers even when query strings are removed.
+      render: json

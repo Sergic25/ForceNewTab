@@ -1,33 +1,83 @@
 {
   "manifest_version": 3,
   "name": "Force New Tab",
-  "version": "1.3.0",
-  "description": "Forces middle-click (MB3) on any element (including JavaScript buttons) to open the page in a new tab.",
+  "version": "4.2.6",
+  "description": "Opens middle-click destinations using generic link, card, image and navigation rules across permitted websites.",
   "permissions": [
-    "tabs"
+    "cookies",
+    "storage",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "discovery.js",
+      "background.js",
+      "diagnostic-background.js",
+      "isolation-target.js",
+      "isolation-background.js"
+    ]
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "inspection.js",
+        "button-evidence.js",
+        "diagnostics.js",
+        "resolver.js",
+        "component-link.js",
+        "app-data.js",
+        "outcome-trace.js",
+        "isolation-target.js",
+        "isolation-content.js",
+        "content.js"
+      ],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
   "icons": {
-    "48": "icon.png"
+    "32": "icons/enabled/icon-32.png",
+    "48": "icons/enabled/icon-48.png",
+    "64": "icons/enabled/icon-64.png",
+    "96": "icons/enabled/icon-96.png",
+    "128": "icons/enabled/icon-128.png"
   },
   "browser_specific_settings": {
     "gecko": {
       "id": "force-new-tab@firefox",
-      "strict_min_version": "140.0",
+      "strict_min_version": "147.0",
       "data_collection_permissions": {
-        "required": ["none"],
-        "optional": []
+        "required": [
+          "none"
+        ]
       }
     }
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/enabled/icon-16.png",
+      "20": "icons/enabled/icon-20.png",
+      "24": "icons/enabled/icon-24.png",
+      "28": "icons/enabled/icon-28.png",
+      "32": "icons/enabled/icon-32.png",
+      "40": "icons/enabled/icon-40.png",
+      "48": "icons/enabled/icon-48.png",
+      "56": "icons/enabled/icon-56.png",
+      "64": "icons/enabled/icon-64.png",
+      "96": "icons/enabled/icon-96.png",
+      "128": "icons/enabled/icon-128.png"
+    },
+    "default_title": "Force New Tab: ON"
+  },
+  "options_ui": {
+    "open_in_tab": true,
+    "page": "changelog.html"
   }
 }
