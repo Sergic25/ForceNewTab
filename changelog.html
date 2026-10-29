@@ -22,14 +22,15 @@ footer{color:var(--muted);font-size:14px;margin-top:26px}details summary{cursor:
 </head>
 <body>
 <main>
-<header><img src="icon@2x.png" alt="Force New Tab purple fist"><div><h1>Force New Tab</h1><p>2.0.0 candidate · automatic middle-click handling</p></div></header>
+<header><img src="icon@2x.png" alt="Force New Tab purple fist"><div><h1>Force New Tab</h1><p>2.0.1 · testing build with local diagnostics</p></div></header>
 <p><a href="https://github.com/Sergic25/ForceNewTab/issues/new/choose" target="_blank" rel="noopener noreferrer"><strong>Website not working? Report it on GitHub</strong></a> · <a href="https://github.com/Sergic25/ForceNewTab" target="_blank" rel="noopener noreferrer">Source and README</a></p>
 <aside class="notice" aria-labelledby="limits">
 <h2 id="limits">What to expect</h2>
 <p>Middle-click tries to open the destination in a background tab. The same rules apply across permitted websites. Purple fist means <strong>ON</strong>; grey means <strong>OFF</strong>. Click the toolbar icon to switch the entire addon on or off.</p>
 <p><strong>The original page cannot always be kept untouched.</strong> Some controls reveal their destination only after their code runs. That code can change the page or send a request before navigation is stopped. A copy can miss temporary panels or unsaved state; websites may also open extra popups or refuse simulated clicks. Firefox-protected pages remain unsupported.</p>
-<p><strong>Firefox 147 or newer is required.</strong> This is a development candidate for a final manual trial before Mozilla release submission. Automated checks simulate browser behavior; they do not guarantee every website works.</p>
+<p><strong>Firefox 147 or newer is required.</strong> This testing build keeps local diagnostic tools separate from the public release. Automated checks simulate browser behavior; they do not guarantee every website works.</p>
 </aside>
+<section><h2>2.0.1 — Copied-button readiness and centered artwork</h2><p>The copied page now keeps the same matched button ready for at least 1.5 seconds before one automatic press. If the page replaces that button while loading, the wait restarts. Direct links, images and card destinations retain their existing behavior.</p><p>The toolbar artwork is larger and centered, with the three trailing wrist lines removed. Purple ON and grey OFF states keep their existing meaning.</p><p>The status now says when a click was attempted, without claiming the website responded. The maintainer confirmed that the tested Canva Login control now opens its popup in the copied tab. This does not guarantee every Canva control. No website-specific rules or repeated clicks were added.</p></section>
 <section aria-labelledby="methods-title">
 <h2 id="methods-title">Automatic handling, one toolbar toggle</h2>
 <p>Direct links, clear card/title relationships and displayed images come first. If those do not reveal a destination, the addon checks for a clear address stored on the control's own app component. An unresolved eligible control can then use a background copy. These methods run automatically while the toolbar is ON; there are no separate testing switches, and old saved testing settings are ignored.</p>

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Force New Tab",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Opens middle-click destinations using generic link, card, image and navigation rules across permitted websites.",
   "permissions": [
     "cookies",

@@ -26,35 +26,35 @@ const baselineHashes={
 // 4.2.6 intentionally replaces only the icon fields of this historical wiring.
 const toolbarIconPaths=state=>Object.fromEntries([16,20,24,28,32,40,48,56,64,96,128].map(size=>[size,`icons/${state}/icon-${size}.png`]));
 const manifestIconPaths=Object.fromEntries([32,48,64,96,128].map(size=>[size,`icons/enabled/icon-${size}.png`]));
-// Hashes verified against outputs/force-new-tab-mozilla-icons/export-verification.json.
-// Compatibility aliases were independently checked against drop-in-4.2.5.
+// Hashes verified against outputs/force-new-tab-icons-no-lines/export-verification.json.
+// Compatibility aliases were independently checked against drop-in-extension.
 const approvedIconHashes={
-  "icons/enabled/icon-16.png": "471004070e569089779f66699d0811818f2bdbc7197a9f0478eca3485e66e69c",
-  "icons/enabled/icon-20.png": "190001c7b495274e5b7f9272d9020c8f07060cb348770ee6c6e1ecbbdeb2aa0f",
-  "icons/enabled/icon-24.png": "2b6d64cac0bf54bb3741c17b1538708e6c49508a49b44280d4e07a0a61454839",
-  "icons/enabled/icon-28.png": "ca2fb7f9a5b274a21682dce6a2beb0ab317f8e7e6e0761bac1d841483c747662",
-  "icons/enabled/icon-32.png": "f88a2fa2170811961941f4d9b797c6f7554d2ca993069e72c7bd0747d0dd1c0c",
-  "icons/enabled/icon-40.png": "289da9078014d9e8b796363e8f97aebe671a656488905e18eb96a407adb30fba",
-  "icons/enabled/icon-48.png": "7e201c4780919a2d58432a6592d6f427e8482cd4464a0095f8786bf301053cdb",
-  "icons/enabled/icon-56.png": "f892692643ce6943a75f29a8fa7d4f5b64a7926ca49b25b2c168d1b34cdc4c99",
-  "icons/enabled/icon-64.png": "a93665fed9f8d9c4ef655501e4aa6a5e524790ef4ebb1401911b8ad31b8265cc",
-  "icons/enabled/icon-96.png": "68b5c6ab405e58c1fe526e3cb7275e14db778b56cd7e6b8dd5c6ba09302b9be6",
-  "icons/enabled/icon-128.png": "96a5a6bb230d24b4fbad6dca00f814e768026cdb60ca4a04afdc50ae599ed84c",
-  "icons/disabled/icon-16.png": "ada92574ca5a106c4973a0bb682ce6c42c8e8c7a19557cfff2f0586ad88ec7bb",
-  "icons/disabled/icon-20.png": "14479d5cd64e1fc4f1e328e4dd9fa04b068ce67f990d7d3ed49e07c8501ab12a",
-  "icons/disabled/icon-24.png": "69ebfecb09f88510d18fb8cf8b4bd95e77dc1906ff14f323cd2c8d4d9d82602a",
-  "icons/disabled/icon-28.png": "2a701c76a583c5f1714bf4303644ad0a680ca11fde93dc7cafd8d7ae205f56ea",
-  "icons/disabled/icon-32.png": "ed4b90d68743826e6b9e4c807d5e16a6f17e71f9f589699e9fccc4b5b50fa51f",
-  "icons/disabled/icon-40.png": "e384ad979f2d307e0ea70b9fa58d5371f06b99cc06f69f32ab895a26807e75a3",
-  "icons/disabled/icon-48.png": "af78313830570f63339feee09c9cc3b5b683f725520c939642b28f3fcc1af4b1",
-  "icons/disabled/icon-56.png": "f2e0c6c218585639e9f2390483570df095e6c710258fcf174855383bcc029491",
-  "icons/disabled/icon-64.png": "39f42b3127aac338a48dd281b4fc7c71e2c09761877ed6d55273d0badd7aa5a5",
-  "icons/disabled/icon-96.png": "e8d0baa3a8d9a14040c880c13a5ff80581bb0cafe695c0525f39e7eaea38a1c6",
-  "icons/disabled/icon-128.png": "de56fdc7c73cf80669faf4414e2ab7e848ff1a7d2116ee4f1e59c3e409466d71",
-  "icon.png": "7e201c4780919a2d58432a6592d6f427e8482cd4464a0095f8786bf301053cdb",
-  "icon@2x.png": "68b5c6ab405e58c1fe526e3cb7275e14db778b56cd7e6b8dd5c6ba09302b9be6",
-  "icon-disabled.png": "af78313830570f63339feee09c9cc3b5b683f725520c939642b28f3fcc1af4b1",
-  "icon-disabled@2x.png": "e8d0baa3a8d9a14040c880c13a5ff80581bb0cafe695c0525f39e7eaea38a1c6"
+  "icons/enabled/icon-16.png": "1c7d7e23b220e2fb93b77637726df5561011a47f06800f3566658e2efe870a5d",
+  "icons/enabled/icon-20.png": "c16204afc73671475cdfecbc615e87d3bb9e1e3cab83a8a7dda972ac4e158aec",
+  "icons/enabled/icon-24.png": "a7146f9fbd2909ae8d33e1325b2368e210604b2b634797183d80f5f0ae838a48",
+  "icons/enabled/icon-28.png": "4e6ea5f9431500f38037dfff057756edf6e9a614c5f9cae710ae270875d5f36f",
+  "icons/enabled/icon-32.png": "ffc5a3f799b82d76fae26982afbf8262e75b8c77b59657183b090d3075f83e29",
+  "icons/enabled/icon-40.png": "0505e452cf584b59070591969e5135c26bc24ffde0d00767e786e717042c5e27",
+  "icons/enabled/icon-48.png": "8546af462e77693cc0b4f9a3c67f37725f450df018e8f8e43828654a545d9345",
+  "icons/enabled/icon-56.png": "fffa95f751d17fa905292d2da542ac9562be154a8bfc7404926a3cacbbb07bce",
+  "icons/enabled/icon-64.png": "b2a5307e16e4daacb4201150d1ee1ca67c5506ca4883f8f929015f4f1fb5445b",
+  "icons/enabled/icon-96.png": "1bdae4d4f426173e2eb7ce1aa447c4a2fd244bf74b44a415c879ac451ccd2ffa",
+  "icons/enabled/icon-128.png": "fd49bea84fa4964f8f0d03455083d1a3f42ad588e192c01edd36708ada832c39",
+  "icons/disabled/icon-16.png": "b287e6597051f2ad9f767d35a3cf33bfa0ab456415fb9809bcf97613617c58b0",
+  "icons/disabled/icon-20.png": "9d64c43262efb0bf322e6510e7404ad18781aec44eb1b20ec4d00aa6ef5296e4",
+  "icons/disabled/icon-24.png": "555b20c57ae4cd35f23a87d8c29aae6e271c821e19603f15cf780f886d455410",
+  "icons/disabled/icon-28.png": "dd1a61d74ff2408eea8516119980d80beb0788b8716bca8c928367b8ddd11d5e",
+  "icons/disabled/icon-32.png": "827e4e4cb285b793d0dbd7f5bf55f6f8819349e7777687b1c3072396ae1a7c77",
+  "icons/disabled/icon-40.png": "c9f78434da12795e90989a8199106027067f7509cbcd06044c7046db1ea1e285",
+  "icons/disabled/icon-48.png": "5eac6602cebaeaffba59933413ba894d07b74949caee31d5d4c94157eb09f4bc",
+  "icons/disabled/icon-56.png": "2d0905fd1674e854477b545249660a2ce6b6a8b81dc5d27499364eed5bb81424",
+  "icons/disabled/icon-64.png": "e4867cc8ecf7a1b045d4fb8a712d99226ac98d5eccde323fe37a9eafad936ae9",
+  "icons/disabled/icon-96.png": "630ddc2f596fcc7afbaf25a9eec8f4d8850b6c89c80d0d25550fa3de10eb3b2f",
+  "icons/disabled/icon-128.png": "5c5eb9daa1d48053ecc3a818c341c85d631062e3cd6a9411e9f51734e51b576e",
+  "icon.png": "8546af462e77693cc0b4f9a3c67f37725f450df018e8f8e43828654a545d9345",
+  "icon@2x.png": "1bdae4d4f426173e2eb7ce1aa447c4a2fd244bf74b44a415c879ac451ccd2ffa",
+  "icon-disabled.png": "5eac6602cebaeaffba59933413ba894d07b74949caee31d5d4c94157eb09f4bc",
+  "icon-disabled@2x.png": "630ddc2f596fcc7afbaf25a9eec8f4d8850b6c89c80d0d25550fa3de10eb3b2f"
 };
 const preservedManifest={
   "permissions": [

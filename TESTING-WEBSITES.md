@@ -6,6 +6,7 @@ Keep the toolbar **ON (purple)**. Address inspection and background copies run a
 
 | Website | Try separately |
 | --- | --- |
+| [Canva](https://www.canva.com/templates/) | Login: one middle-click should open a copied page with its login popup. The maintainer confirmed this control works in 2.0.1; retest it when changing copy behavior. |
 | [Bluesky](https://bsky.app/) | Post, image, comment, and signed-out login/signup buttons |
 | [Spotify](https://open.spotify.com/) | Album artwork, title, artist, login, and signup |
 | [X](https://x.com/) | Posts, comments, images, and a story in Today's News when available |

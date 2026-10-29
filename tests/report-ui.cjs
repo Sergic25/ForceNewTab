@@ -133,7 +133,7 @@ function harness({extension=true,clipboard=true,controlOK=true}={}){
  });
  await check('safe last-copy status appears in the report without altering stored report',async()=>{
   const h=harness();await flush();await h.api.storage.local.set({fntLastClickReport:{schemaVersion:1},fntLastIsolationResult:{state:'activated',activated:true}});await flush();
-  assert.match(h.nodes['isolation-status'].textContent,/activated/);assert.equal(JSON.parse(h.nodes['click-report'].value).isolationResult.activated,true);assert.equal(h.values.fntLastClickReport.isolationResult,undefined);
+  assert.match(h.nodes['isolation-status'].textContent,/click was attempted/);assert.equal(JSON.parse(h.nodes['click-report'].value).isolationResult.activated,true);assert.equal(h.values.fntLastClickReport.isolationResult,undefined);
  });
  await check('declined copy status explains fallback and preserves its safe reason in copied report',async()=>{
  const h=harness();await flush();await h.api.storage.local.set({fntLastClickReport:{schemaVersion:1},fntLastIsolationResult:{state:'declined',reason:'ambiguous-shadow-host',activated:false}});await flush();

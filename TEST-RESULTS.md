@@ -1,19 +1,23 @@
-# Force New Tab 2.0.0 — verification status
+# Force New Tab 2.0.1 — diagnostic testing branch
 
-Verified on October 28, 2026. App-data and background-copy methods run automatically under the existing toolbar ON/OFF control. Stored legacy feature flags are ignored. The final Firefox trial and Mozilla release checks are still pending.
+Verified on October 28, 2026. All20 packaged suites pass using node tests/run.cjs. These simulate DOM/browser APIs; no native Firefox integration claim is made.
 
-## Current result
+## Changes from the2.0.0 GitHub candidate
 
-**All 20 packaged suites pass** using node tests/run.cjs. These are simulated DOM/browser tests, not native Firefox integration tests, and do not establish universal compatibility.
+The copied worker now issues a preparation token for the actual matched button and descriptor. Replacing the button, changing the descriptor/request, losing the match or returning to a loading document invalidates that token. The background requires the same document and preparation token for at least1500ms before sending one execute message with both tokens. The existing15second deadline stays fixed even when a page repeatedly replaces the control. Direct link/card/image/app-data resolution is unchanged.
 
-The two remaining flow suites expected old optional switches to disable automatic methods. Their fixtures now distinguish fresh settings from saved legacy false values. Both must behave automatically. The existing compatibility cases remain, with added checks for toolbar OFF, OFF then ON during a pending copy, direct destinations taking priority, and rejecting stale fallback or repeat activation.
+Activation reasons now distinguish a dispatched click, a thrown invocation and a previously consumed operation. Saved activated/uncertain summaries explicitly set effectConfirmed:false. The Preferences label says a click was attempted and directs the user to check the actual result. No second click or source-page replay is authorized after possible copied activation.
 
-Passing coverage includes 42 app-data checks, 91 app-data compatibility/integration checks, 56 copy-content checks, 83 copy-background checks, 52 copy integration checks, 42 combined gesture checks, 35 shadow-tree flow checks, 57 diagnostic checks, 29 outcome-background checks and 18 report-UI checks. Counts overlap and must not be added into an end-to-end total. All remaining core/resolver/component/locator/migration suites pass; the legacy suite reproduces four known faults in the original source.
+The requested artwork revision removes the three trailing wrist lines and centers/enlarges the remaining fist, tab and white impact marks. Separate purple ON/grey OFF assets retain their existing filenames and size mappings. All26 packaged icon files match the independently exported dimensions and SHA256 records in the companion force-new-tab-icons-no-lines pack. Icon fingerprint expectations were deliberately updated; historical navigation fingerprints remain.
 
-The final test correction changes tests and documentation only. The original core, resolver, component-link, discovery, toolbar background and target-matching modules remain byte-identical to the verified 4.2.6 icon candidate. The feature-gating modules and reporting UI were intentionally changed for automatic handling. There are no new permissions, website-specific rules or changes to the approved icon files.
+## Coverage
 
-A definitive toolbar-settings read failure declines copying and permits bounded source discovery only after fresh source validation. Pending reads, known toolbar OFF, changed context and uncertain/complete copied activation do not gain that fallback.
+61 worker-content checks include stable/replaced/loading targets, incorrect/missing preparation tokens and stale-token cancellation.91 background checks include the1.5second settling interval, token changes, a delayed mock handler, malformed replies, the fixed15second deadline, distinct activation errors and no repeat activation. Existing35 open-shadow-flow,42 gesture-flow,52 integration, direct-opening and global-toolbar checks pass. Counts overlap and are not an end-to-end total.
 
-The icons retain their verified dimensions/hashes and toolbar-state checks. No live Firefox verification was performed for this automatic-handling candidate. The maintainer's final normal-browser trial, signed installation and upgrade checks, and Mozilla validation remain release work. The test package is unsigned.
+The original content.js,resolver.js,component-link.js,app-data.js,discovery.js,background.js and isolation-target.js remain byte-identical to the2.0.0 GitHub candidate. Permissions and license are unchanged. The trial adds no website-specific runtime rules.
 
-Earlier verification records are preserved in docs/history/TEST-RESULTS.md and describe earlier builds.
+## Canva evidence and remaining verification
+
+The user reported that middle-clicking Login at Canva templates opens a plain copy. Left-clicking Login inside that copy opens an in-page popup. The2.0.0 report records an attempted copied activation but does not prove its visible effect. A normal keyboard login activation also opened the dialog container in a separate public inspection. None of this establishes whether early initialization or synthetic-input behavior caused the Firefox failure.
+
+The maintainer subsequently confirmed that Canva Login works with the current correction. This is feedback for the tested control, not independent automated Firefox evidence or a claim that every Canva control works. Keep Canva, the previously working Bluesky login/signup and Questrade control, and direct destinations in future regression checks. Allow up to15seconds without clicking or typing in the copy. Signed installation/upgrade checks, Mozilla validation and the final browser trial remain pending. This diagnostic build is preserved on GitHub's testing branch, outside normal Releases. It has not been submitted to Mozilla.

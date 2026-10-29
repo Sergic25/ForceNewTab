@@ -34,7 +34,7 @@ function content(o={}) {
     window:{addEventListener(t,fn,flags) {(listeners[t]||=[]).push({fn,flags});}},
     browser:{storage:{onChanged:{addListener:fn=>changes.push(fn)},local:{get(defaults) {
       gets.push(defaults);return o.get?o.get(defaults):Promise.resolve({fntRecordNextClick:o.initial||null});
-    }}},runtime:{getManifest:()=>({version:o.runtimeVersion||'2.0.0'}),sendMessage(m) {sent.push(clean(m));return o.send?o.send(m):Promise.resolve({saved:true});}}}});
+    }}},runtime:{getManifest:()=>({version:o.runtimeVersion||'2.0.1'}),sendMessage(m) {sent.push(clean(m));return o.send?o.send(m):Promise.resolve({saved:true});}}}});
   vm.runInContext(source,context,{filename:'diagnostics.js'});
   return {api:context.FNTDiagnostics,listeners,sent,gets,
     change(v,area='local') {for(const fn of changes)fn({fntRecordNextClick:{newValue:v}},area);},
@@ -341,7 +341,7 @@ test('known routes bypass copy audit and audit failures preserve safe reports',(
  const unknown=content({targetModule});const b=unknown.api.snapshot(event([el('button')]));assert.equal(b.copyEligibility.reason,'read-error');assert.doesNotMatch(JSON.stringify(b),/PRIVATE_AUDIT/);
 });
 test('report separates source build from installed runtime version',()=>{
- const h=content({runtimeVersion:'4.2.2'});const r=h.api.snapshot(event());assert.equal(r.diagnosticVersion,'2.0.0');assert.equal(r.extensionVersion,'4.2.2');
+ const h=content({runtimeVersion:'4.2.2'});const r=h.api.snapshot(event());assert.equal(r.diagnosticVersion,'2.0.1');assert.equal(r.extensionVersion,'4.2.2');
 });
 // 4.2.6 deliberately updates approved icon fingerprints; navigation hashes stay historical.
 test('routing matches baseline apart from explicit isolation Shift and icon-only guards',()=>{
@@ -350,10 +350,10 @@ test('routing matches baseline apart from explicit isolation Shift and icon-only
     'content.js':'f8b07fa1ccac9e8d95404d8a91f19f9458694f5e7a5d0e5fda87342168a80d26',
     'discovery.js':'a50174a21f1dbe3b55116cca5cf624fbace10447175c8f9b25c3b408f8e6e358',
     'background.js':'057dc907366e2981b1e2dffe178cb192765d8659cad1e6d8e489d90946f2db2e',
-    'icon.png':'7e201c4780919a2d58432a6592d6f427e8482cd4464a0095f8786bf301053cdb',
-    'icon@2x.png':'68b5c6ab405e58c1fe526e3cb7275e14db778b56cd7e6b8dd5c6ba09302b9be6',
-    'icon-disabled.png':'af78313830570f63339feee09c9cc3b5b683f725520c939642b28f3fcc1af4b1',
-    'icon-disabled@2x.png':'e8d0baa3a8d9a14040c880c13a5ff80581bb0cafe695c0525f39e7eaea38a1c6'};
+    'icon.png':'8546af462e77693cc0b4f9a3c67f37725f450df018e8f8e43828654a545d9345',
+    'icon@2x.png':'1bdae4d4f426173e2eb7ce1aa447c4a2fd244bf74b44a415c879ac451ccd2ffa',
+    'icon-disabled.png':'5eac6602cebaeaffba59933413ba894d07b74949caee31d5d4c94157eb09f4bc',
+    'icon-disabled@2x.png':'630ddc2f596fcc7afbaf25a9eec8f4d8850b6c89c80d0d25550fa3de10eb3b2f'};
   for(const [file,expected] of Object.entries(hashes)) {
     let bytes=fs.readFileSync(path.join(root,file));
     if(file==='background.js') {
