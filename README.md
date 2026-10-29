@@ -1,107 +1,77 @@
 # Force New Tab
 
-A Firefox extension that forces middle-click on any element to open in a new tab — including JavaScript-driven buttons, cards, and links that normally ignore middle click.
+**Middle-click more of the web.** Force New Tab helps links, images, cards and JavaScript-driven buttons open their destination in a new background tab—even when a website normally ignores middle-click or treats it like a left-click.
 
-## The Problem
+**Version 2.0.1 · Firefox 147 or newer.** This GitHub release contains the public extension source and unsigned package. Publishing on GitHub does not update Firefox installations: the Mozilla submission and signed update are separate steps. The [Firefox Add-ons listing](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/) provides the version currently available through Mozilla.
 
-Modern websites are often built as Single Page Applications (SPAs) using frameworks like React, Vue, and Angular. Navigation on these sites is handled entirely by JavaScript rather than standard `<a href>` links. As a result, middle-clicking elements like cards, buttons, and tiles either does nothing or navigates the current tab instead of opening a new one.
+**A website still not working?** [Open a GitHub issue](https://github.com/Sergic25/ForceNewTab/issues/new/choose) or describe it in the [extension's Firefox reviews](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/). Include the exact item you middle-clicked and what happened.
 
-Force New Tab solves this transparently, without breaking normal browser behaviour.
+## Using the extension
 
----
+Middle-click the item you want to open. No keyboard shortcut or website configuration is needed. All opening methods work automatically.
 
-## How It Works
+Click the fist in Firefox's toolbar to switch the whole extension:
 
-When you middle-click an element, the extension works through a chain of fallbacks in order, stopping as soon as it finds a URL to open:
+- **Purple: ON.** Force New Tab handles supported middle-clicks.
+- **Grey: OFF.** Firefox and the website handle them normally.
 
-1. **Real links are ignored** — if the clicked element is a genuine `<a href>` link, the extension does nothing and lets the browser handle it natively. (Opens in new tab by default)
+Your choice is remembered. Pin the fist through Firefox's Extensions menu if needed. Reload pages after installing or replacing the extension. Ordinary left-clicks work normally.
 
-2. **`data-*` attribute scan** — checks the clicked element and its ancestors for common URL attributes like `data-href`, `data-url`, `data-link`, `data-navigate` etc.
+The What's New page opens once per version. Reopen it through the extension's Preferences in Add-ons Manager.
 
-3. **Child anchor search** — searches inside the card container for any `<a href>` link. Useful for sites like Spotify where the image and text are separate elements inside the same card, but only the text has a real link.
+## How it finds the destination
 
-4. **Page world hooks** — intercepts standard JavaScript navigation methods:
-   - `window.open`
-   - `history.pushState`
-   - `history.replaceState`
-   - `location.href`
-   - `location.assign`
-   - `location.replace`
+Many websites make cards or buttons clickable without ordinary links. Force New Tab tries these approaches in order:
 
-5. **Click replay** — if nothing is captured after 500ms, the extension re-fires `mousedown`, `mouseup`, and `click` events on the element to trigger its JavaScript handler, then intercepts the resulting navigation.
+1. **Read an available destination.** It looks for the clicked link, a clear relationship between a card and its title link, or the displayed image address. These destinations open promptly, without pressing the original control.
+2. **Look for an address belonging to the control.** Some websites store the destination in the information behind that particular button or card. A clear match can also open directly.
+3. **Try the control in a background copy.** When no destination is available, an eligible control can use a new copy of the page. The extension finds the matching control there, waits for it to settle, then presses it once. This can open a login dialog inside the copied page even when there is no separate login address.
+4. **Learn from the original page as a last resort.** If copying is unavailable or definitely fails before a click is attempted, the extension may activate the original control and watch for its destination. That can change the original page too.
 
-6. **URL polling** — as a last resort, monitors `window.location.href` for changes after the click replay fires. If the URL changes, the new URL is opened in a new tab and the current tab is snapped back to its original URL.
+The same rules apply across permitted websites. There are no Spotify, Bluesky or Canva address lists to maintain. Opening the intended destination is the priority; keeping the original page unchanged is the next goal.
 
----
+## When a new tab takes longer
 
-## Compatibility
+A background copy may need **up to 15 seconds** to load and prepare. Direct links and other known destinations do not wait for this process.
 
-The extension is designed to work on as many sites as possible. Tested on:
+You can switch tabs or look at the copy while it prepares. Clicking or typing inside the copy stops the automatic press, so it does not interfere with your own input. Interacting with the original page, navigating, closing a tab or turning the extension OFF can also cancel preparation. Once a click might have reached the copy, the extension will not automatically repeat it on the original page.
 
-| Site | Status | Method used |
-|------|--------|-------------|
-| YouTube | ✅ Works | Page world hooks |
-| Reddit | ✅ Works | Page world hooks |
-| Twitter / X | ✅ Works | Page world hooks |
-| Spotify | ✅ Works | Child anchor search |
-| GitHub | ✅ Works | Real links / page world hooks |
-| Twitch | ✅ Works | Page world hooks |
-| Pinterest (cards) | ✅ Works | Child anchor search |
-| Pinterest (filter buttons) | ⚠️ Partial | URL polling — current tab also navigates, use back button to restore |
+## What cannot be guaranteed
 
-### Known Limitations
+No extension can turn every website control into a normal link. A button may open only a temporary panel, require information that was not recreated in the copy, or refuse a simulated click. Forms and editing controls may be left alone. Some popup controls can work in a new copy; others may leave a copy with no popup.
 
-- **Strict CSP sites** — some sites (like Pinterest) block page-world script injection via Content Security Policy. The extension degrades gracefully, falling back to DOM-based methods that don't require page-world access.
-- **Modal/dialog triggers** — buttons that open dialogs rather than navigating to a new page have no URL to open. The extension correctly does nothing in these cases.
-- **Internal framework routers** — some sites use heavily customised internal routers (like Spotify's) that bypass all standard navigation methods. The child anchor search and click replay fallbacks handle most of these cases.
+A copied tab reloads the page; it is not an exact snapshot of the running website. Unsaved work, temporary menus and a changing feed may differ. If the final fallback runs on the original page, the website can change its appearance or send a request before the destination is captured. Websites may also open their own extra windows or synchronize changes across tabs.
 
----
+Firefox's protected pages and pages where the extension has no access are unsupported. Image destinations may be the displayed preview rather than a full-resolution original.
 
-## Installation
+## What changed in 2.0.1
 
-### From Firefox Add-ons (AMO)
-https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/
+This release overhauls destination finding, adds automatic background-copy handling for difficult controls, and improves how copies wait for a button to settle. It also introduces the larger, centered purple and grey fist artwork and clearer website-reporting links.
 
-### Manual Installation (for testing)
-1. Download or clone this repository
-2. Open Firefox and go to `about:debugging`
-3. Click **This Firefox**
-4. Click **Load Temporary Add-on**
-5. Select the `manifest.json` file from the repository
+During development, the maintainer reported successful results for tested Bluesky controls, Spotify artwork/navigation, X news cards, Questrade account navigation and **Canva's Login popup**. These results concern particular controls, not entire sites. Automated checks use simulated browser behavior; see [test results](TEST-RESULTS.md) and the [manual test list](TESTING-WEBSITES.md).
 
----
+## Installation and testing
 
-## Permissions
+For the Mozilla-distributed version, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/). An unsigned GitHub package is not a permanent install in standard Firefox.
 
-The extension requests the following permissions:
+To load this source temporarily:
 
-- **`tabs`** — required to open URLs in new background tabs
+1. Download and extract the source ZIP.
+2. Open `about:debugging` → **This Firefox** → **Load Temporary Add-on**.
+3. Select `manifest.json` from the extracted folder, then reload the pages you want to test.
 
-No data is collected, stored, or transmitted. The extension has no network access and makes no external requests. All processing happens locally in your browser.
+Temporary installations end when Firefox restarts.
 
----
+The public release has no click recorder or separate feature switches. A separate [testing branch](https://github.com/Sergic25/ForceNewTab/tree/testing) retains the manual diagnostic tools for investigating difficult websites. It is outside the stable Releases downloads and can be loaded temporarily in the same way.
 
-## Version History
+## Reporting and privacy
 
-### v1.3.0
-- Added URL polling fallback for sites that bypass all JavaScript hooks
-- Added child anchor search for Spotify-style card components
-- Added `history.replaceState` interception
+Use [GitHub Issues](https://github.com/Sergic25/ForceNewTab/issues/new/choose) or [Firefox reviews](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/). Give the website, exact clicked item, browser and extension versions, expected result, and what happened in both tabs. Say whether signing in is required. Share public links or a description of private pages; omit account details and credentials.
 
-### v1.2.0
-- Added `location.href`, `location.assign`, and `location.replace` interception
-- Added click replay fallback
+There is no telemetry or automatic report upload. Settings and copy-operation status stay in your browser. Websites and copied tabs still make their normal network requests. Website access lets the extension inspect controls; storage saves local state; navigation access helps detect destinations; cookie permission preserves Firefox container context.
 
-### v1.1.0
-- `window.open`, `history.pushState` interception
-- Real link passthrough
-- `data-*` attribute fallback
+## Development and license
 
-### v1.0.0
-- Initial public release
+Run `node tests/run.cjs` for the public build's automated checks. Historical development notes are kept in [docs/history](docs/history/DEVELOPMENT-NOTES.md). Force New Tab is released under the [MIT license](LICENSE).
 
----
 
-## License
-
-MIT

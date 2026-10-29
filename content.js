@@ -1,250 +1,193 @@
-/**
- * Force New Tab - content.js
- *
- * Only intercepts middle-clicks on JS-driven elements (buttons, divs, etc.)
- * that don't have a real <a> ancestor. Plain anchor links are left alone —
- * the browser already opens those in a new tab on middle-click.
- */
-
-(function () {
+(() => {
   "use strict";
-
-  if (window.__forceNewTabInstalled) return;
-  window.__forceNewTabInstalled = true;
-
-  const pageScript = document.createElement("script");
-  pageScript.textContent = `
-  (function () {
-    if (window.__forceNewTabPageInstalled) return;
-    window.__forceNewTabPageInstalled = true;
-
-    let pending  = false;
-    let consumed = false;
-
-    window.addEventListener("__forceNewTab_activate", function (e) {
-      pending  = e.detail.active;
-      if (e.detail.active) consumed = false;
-    });
-
-      function emit(url) {
-        if (consumed) return;
-        consumed = true;
-        window.dispatchEvent(new CustomEvent("__forceNewTab_url", { detail: { url } }));
-      }
-
-      const _open = window.open.bind(window);
-      Object.defineProperty(window, "open", {
-        get: () => function (url, ...args) {
-          if (pending && url) { emit(url); return null; }
-          return _open(url, ...args);
-        },
-        set: () => {},
-                            configurable: false
-      });
-
-      const _push    = history.pushState.bind(history);
-      const _replace = history.replaceState.bind(history);
-      history.pushState = function (state, title, url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _push(state, title, url);
-      };
-      history.replaceState = function (state, title, url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _replace(state, title, url);
-      };
-
-      const locDesc = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
-      Object.defineProperty(Location.prototype, 'href', {
-        enumerable: true,
-        configurable: true,
-        get: function () { return locDesc.get.call(this); },
-                            set: function (val) {
-                              if (pending && val) { emit(String(val)); return; }
-                              locDesc.set.call(this, val);
-                            }
-      });
-
-      const _assign = window.location.assign.bind(window.location);
-      window.location.assign = function (url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _assign(url);
-      };
-
-      const _locReplace = window.location.replace.bind(window.location);
-      window.location.replace = function (url) {
-        if (pending && url) { emit(String(url)); return; }
-        return _locReplace(url);
-      };
-
-  })();
-  `;
-  (document.head || document.documentElement).prepend(pageScript);
-  pageScript.remove();
-
-  function findAnchor(el) {
-    let node = el;
-    while (node && node !== document.body) {
-      if (node.tagName === "A") return node;
-      node = node.parentElement;
+  let gesture = null;
+  let pending = null;
+  let epoch = 0;
+  let attemptNumber = 0;
+  let enabled = true;
+  let stateRevision = 0;
+  function send(message) {
+    try { return Promise.resolve(browser.runtime.sendMessage(message)).catch(() => null); }
+    catch { return Promise.resolve(null); }
+  }
+  function invalidate(keepActivated = false) {
+    epoch++;
+    gesture = null;
+    if (pending && !(keepActivated && pending.activated)) {
+      void send({type: "fnt-cancel", attemptId: pending.id});
+      pending = null;
     }
-    return null;
+  }
+  function applyMode(value) {
+    const next = value !== false;
+    if (next !== enabled) { enabled = next; invalidate(); }
+  }
+  browser.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local" || !Object.hasOwn(changes, "enabled")) return;
+    stateRevision++;
+    applyMode(changes.enabled.newValue);
+  });
+  const initialRevision = stateRevision;
+  browser.storage.local.get({enabled: true}).then(saved => {
+    if (stateRevision === initialRevision) applyMode(saved.enabled);
+  }, () => {});
+
+  function activationTarget(path) {
+    const nodes = path.filter(node => node && node.nodeType === 1);
+    // Navigation intent does not authorize submitting/editing a form. These
+    // exclusions are deliberately structural, not guesses based on English text.
+    if (nodes.some(node => ["form", "input", "textarea", "select", "option", "label", "summary"].includes(node.localName) ||
+        node.isContentEditable || node.hasAttribute("disabled") ||
+        node.getAttribute("aria-disabled") === "true" ||
+        (node.localName === "button" && ["submit", "reset"].includes(node.getAttribute("type"))))) return null;
+    const semantic = nodes.find(node => ["a", "button"].includes(node.localName) ||
+      ["link", "button"].includes(node.getAttribute("role")));
+    return semantic && typeof semantic.click === "function" ? semantic :
+      nodes.find(node => typeof node.click === "function") || null;
   }
 
-  function isRealLink(anchor) {
-    if (!anchor) return false;
-    const href = anchor.getAttribute("href");
-    if (!href || href === "#" || href.startsWith("javascript:")) return false;
-    return true;
+  function stillEligible(target) {
+    const path = [];
+    for (let node = target; node;) {
+      path.push(node);
+      node = node.parentElement || node.getRootNode?.()?.host || null;
+    }
+    return activationTarget(path) === target;
   }
 
-  function resolveDataUrl(el) {
-    let node = el;
-    while (node && node !== document.body) {
-      const attrs = [
-        "data-href", "data-url", "data-link", "data-target",
- "data-navigate", "data-route", "data-src", "data-redirect"
-      ];
-      for (const a of attrs) {
-        const v = node.getAttribute?.(a);
-        if (v && v !== "#" && !v.startsWith("javascript:")) {
-          return v;
-        }
-      }
-      node = node.parentElement;
+  async function discover(target) {
+    const id = Date.now().toString(36) + "-" + (++attemptNumber);
+    const ownedEpoch = epoch;
+    pending = {id, activated: false, activating: false, captured: false, deadline: Date.now() + 7_500};
+    const ack = await send({type: "fnt-arm", attemptId: id, beforeURL: location.href});
+    if (!ack?.ok || !enabled || epoch !== ownedEpoch || pending?.id !== id ||
+        Date.now() > pending.deadline ||
+        !target.isConnected || target.ownerDocument !== document || !stillEligible(target)) {
+      void send({type: "fnt-cancel", attemptId: id});
+      if (pending?.id === id) pending = null;
+      return;
     }
-    return null;
-  }
-
-  function findChildAnchor(el) {
-    let container = el;
-    for (let i = 0; i < 5; i++) {
-      if (!container || container === document.body) break;
-      container = container.parentElement;
-    }
-    if (!container) return null;
-
-    const anchors = container.querySelectorAll("a[href]");
-    for (const a of anchors) {
-      const href = a.getAttribute("href");
-      if (href && href !== "#" && !href.startsWith("javascript:")) {
-        return href;
-      }
-    }
-    return null;
-  }
-
-  let clickConsumed = false;
-
-  function openTab(url) {
-    if (!url || clickConsumed) return false;
+    // The background observer is now armed. It survives a full source unload.
+    const attempt = pending;
+    attempt.activated = true;
+    attempt.activating = true;
     try {
-      const abs = new URL(url, document.baseURI).href;
-      clickConsumed = true;
-      browser.runtime.sendMessage({ action: "openTab", url: abs });
-      return true;
+      HTMLElement.prototype.click.call(target);
     } catch {
-      return false;
+      if (!attempt.captured) void send({type: "fnt-cancel", attemptId: id});
+      if (pending?.id === id) pending = null;
+    } finally {
+      attempt.activating = false;
+      if (attempt.captured && pending?.id === id) pending = null;
     }
   }
 
-  window.addEventListener("__forceNewTab_url", function (e) {
-    openTab(e.detail.url);
+  // Native browser navigation, not a page-world patch or website adapter.
+  // Firefox 147+ exposes this EventTarget to content scripts.
+  window.navigation?.addEventListener("navigate", event => {
+    const attempt = pending;
+    if (!enabled || !attempt?.activated || !event.isTrusted || !event.cancelable ||
+        event.navigationType === "traverse" || event.formData != null || event.downloadRequest != null) return;
+    if (Date.now() > attempt.deadline) {
+      pending = null;
+      void send({type: "fnt-cancel", attemptId: attempt.id});
+      return;
+    }
+    const url = FNT.safeURL(event.destination?.url, document.baseURI);
+    if (!url || url === location.href) return;
+    // canIntercept may be false for cross-origin URLs. Cancellation is a
+    // separate capability: preventDefault is sufficient when cancelable.
+    event.preventDefault();
+    if (!event.defaultPrevented) return;
+    event.stopImmediatePropagation();
+    if (attempt.captured) return;
+    attempt.captured = true;
+    void send({type: "fnt-captured", attemptId: attempt.id, url});
+    // Keep a synchronous activation's remaining navigations suppressed, without
+    // retaining a hook that could swallow unrelated later page activity.
+    if (!attempt.activating && pending?.id === attempt.id) pending = null;
   });
 
-  document.addEventListener("mousedown", function (e) {
-    if (e.button !== 1) return;
-    if (e.ctrlKey || e.shiftKey || e.metaKey) return;
-
-    const anchor = findAnchor(e.target);
-    if (isRealLink(anchor)) return;
-
-    e.preventDefault();
-    e.stopImmediatePropagation();
-
-    clickConsumed = false;
-    const clickTarget = e.target;
-    const clickX = e.clientX;
-    const clickY = e.clientY;
-
-    // Snapshot current URL before click
-    const urlBefore = window.location.href;
-
-    window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-      detail: { active: true }
-    }));
-
-    // 1. Try data-* attributes first
-    const dataUrl = resolveDataUrl(e.target);
-    if (dataUrl) {
-      openTab(dataUrl);
+  function block(event) {
+    if (event.cancelable) event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+  function handle(event) {
+    if (!event.isTrusted) return;
+    if (event.type === "pointercancel") { invalidate(); return; }
+    if (!enabled) return;
+    if (event.button !== 1) {
+      if (event.type === "pointerdown" || event.type === "mousedown") invalidate();
       return;
     }
-
-    // 2. Try searching inside the container for a child <a href>
-    const childUrl = findChildAnchor(e.target);
-    if (childUrl) {
-      openTab(childUrl);
+    block(event);
+    if (event.type === "pointerdown" || event.type === "mousedown") {
+      // BEGIN isolated-shift press
+      const isolationShift = event.shiftKey === true || (event.type === "mousedown" &&
+        gesture?.isolationShift === true && gesture.target === activationTarget(event.composedPath()));
+      // END isolated-shift press
+      invalidate();
+      gesture = {url: FNT.resolve(event.composedPath(), document.baseURI, location.href),
+        target: activationTarget(event.composedPath()), started: Date.now(),
+        released: false, releaseURL: null, releaseTarget: null};
+      // BEGIN isolated-shift latch
+      try {
+        if (!gesture.url && isolationShift && globalThis.FNTIsolation?.isEnabled?.() === true) gesture.isolationShift = true;
+      } catch {}
+      // END isolated-shift latch
+    }
+    if (!gesture) return;
+    if (Date.now() - gesture.started > 60_000) { invalidate(); return; }
+    if (event.type === "mouseup" || event.type === "pointerup") {
+      gesture.released = true;
+      gesture.releaseURL = FNT.resolve(event.composedPath(), document.baseURI, location.href);
+      gesture.releaseTarget = activationTarget(event.composedPath());
+    }
+    if (event.type !== "auxclick") return;
+    const completed = gesture;
+    gesture = null;
+    if (!completed.released) return;
+    const destination = FNT.resolve(event.composedPath(), document.baseURI, location.href);
+    if (completed.url) {
+      if (destination === completed.url && completed.releaseURL === completed.url)
+        void send({type: "fnt-open", url: destination});
       return;
     }
-
-    // 3. Wait for page JS hooks to capture a URL
-    setTimeout(() => {
-      if (!clickConsumed) {
-        // 4. Try click replay
-        window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-          detail: { active: true }
-        }));
-
-        const opts = {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          button: 0,
-          buttons: 1,
-          clientX: clickX,
-          clientY: clickY
-        };
-        try {
-          clickTarget.dispatchEvent(new MouseEvent("mousedown", opts));
-          clickTarget.dispatchEvent(new MouseEvent("mouseup", opts));
-          clickTarget.dispatchEvent(new MouseEvent("click", opts));
-        } catch (err) {
-          console.error("[ForceNewTab] Click replay failed:", err);
-        }
-
-        // 5. Watch for URL change, snap back and open in new tab
-        const snapBack = setInterval(() => {
-          const urlNow = window.location.href;
-          if (urlNow !== urlBefore) {
-            clearInterval(snapBack);
-            history.replaceState(null, "", urlBefore);
-            if (!clickConsumed) {
-              openTab(urlNow);
-            }
-            window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-              detail: { active: false }
-            }));
-            clickConsumed = false;
-          }
-        }, 10);
-
-        // Give up after 600ms if nothing changed
-        setTimeout(() => {
-          clearInterval(snapBack);
-          window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-            detail: { active: false }
-          }));
-          clickConsumed = false;
-        }, 600);
-
-      } else {
-        window.dispatchEvent(new CustomEvent("__forceNewTab_activate", {
-          detail: { active: false }
-        }));
-        clickConsumed = false;
-      }
-    }, 500);
-
+    const target = activationTarget(event.composedPath());
+    if (destination || !target || target !== completed.target || target !== completed.releaseTarget) return;
+    // BEGIN isolated-copy hook
+    const isolatedEpoch = epoch, isolatedURL = location.href;
+    let isolated = null;
+    try { isolated = globalThis.FNTIsolation?.tryStart(target, {shiftKey: !!event.shiftKey || completed.isolationShift === true}); } catch {}
+    if (isolated) {
+      void Promise.resolve(isolated).then(result => {
+        if (result?.fallback === true && result.activated === false && enabled &&
+            epoch === isolatedEpoch && location.href === isolatedURL && target.isConnected &&
+            target.ownerDocument === document && stillEligible(target)) void discover(target);
+      }).catch(() => {});
+      return;
+    }
+    // END isolated-copy hook
+    void discover(target);
+  }
+  for (const type of ["pointerdown", "mousedown", "pointerup", "mouseup", "auxclick", "click", "pointercancel"]) {
+    window.addEventListener(type, handle, {capture: true, passive: false});
+  }
+  // BEGIN isolated-shift keyboard
+  window.addEventListener("keydown", event => {
+    if (!event.isTrusted) return;
+    let modifier = false, pendingIsolation = false;
+    try {
+      modifier = globalThis.FNTIsolation?.isModifierGesture?.(event) === true;
+      pendingIsolation = modifier && globalThis.FNTIsolation?.isPending?.() === true;
+    } catch {}
+    if (modifier && gesture && !gesture.url) { gesture.isolationShift = true; return; }
+    if (pendingIsolation) return;
+    invalidate();
   }, true);
-
+  // END isolated-shift keyboard
+  // A source navigation must not tear down an already-armed background observer.
+  window.addEventListener("blur", () => { invalidate(true); }, true);
+  window.addEventListener("pagehide", () => { invalidate(true); }, true);
 })();
+

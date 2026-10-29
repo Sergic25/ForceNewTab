@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Force New Tab — What's new</title>
+<style>
+:root{color-scheme:light dark;--bg:#f7f6fa;--card:#fff;--text:#241f30;--muted:#635b72;--line:#e1dce9;--accent:#7047a0;--notice:#f0eaf8}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1823;--card:#27212f;--text:#f2edf8;--muted:#c3b9cf;--line:#44394f;--accent:#c8a2ef;--notice:#352741}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,sans-serif}
+main{max-width:760px;padding:42px 24px 64px;margin:auto}header{display:flex;gap:18px;align-items:center;margin-bottom:26px}
+header img{width:64px;height:64px}h1{margin:0;font-size:30px;line-height:1.2}header p{margin:5px 0 0;color:var(--muted)}
+.notice{padding:22px 24px;background:var(--notice);border:1px solid var(--accent);border-radius:14px;margin-bottom:24px}
+.notice h2{font-size:21px;margin:0 0 8px}.notice p{margin:0 0 12px}.notice p:last-child{margin:0}
+section{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:22px 24px;margin-bottom:20px}
+section h2{font-size:21px;margin:0 0 8px}section p{margin:0 0 12px}section p:last-child{margin:0}li{padding:5px 0}ul{padding-left:22px}
+a{color:var(--accent)}.state{display:flex;gap:22px;flex-wrap:wrap;margin:16px 0}.state span{display:flex;align-items:center;gap:8px}.state img{width:36px;height:36px}
+.links{display:flex;gap:10px 22px;flex-wrap:wrap;margin:12px 0 0}.links a{font-weight:650}footer{color:var(--muted);font-size:14px;margin-top:26px}
+@media(max-width:480px){main{padding:24px 16px}h1{font-size:25px}section,.notice{padding:18px}}
+</style>
+</head>
+<body>
+<main>
+<header><img src="icon@2x.png" alt="Force New Tab purple fist"><div><h1>Force New Tab</h1><p>What's new in 2.0.1</p></div></header>
+<aside class="notice" aria-labelledby="expect-title">
+<h2 id="expect-title">More middle-clicks, fewer dead ends</h2>
+<p>Force New Tab tries to open your destination in a background tab, including many cards and buttons that normally ignore middle-click. It uses the same rules across permitted websites.</p>
+<p><strong>Some controls still have limits.</strong> A website may have no separate destination, refuse an automatic click or fail to recreate a popup in a copy. As a last resort, finding the destination may change the original page too. Firefox-protected pages remain unsupported.</p>
+<p><strong>Found a website that does not work?</strong> Please tell us in the extension's Firefox reviews or on GitHub. Include the website, the exact item you middle-clicked and what happened in both tabs.</p>
+<div class="links"><a href="https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/" target="_blank" rel="noopener noreferrer">Report in Firefox reviews</a><a href="https://github.com/Sergic25/ForceNewTab/issues/new/choose" target="_blank" rel="noopener noreferrer">Report on GitHub</a></div>
+</aside>
+<section aria-labelledby="new-title">
+<h2 id="new-title">What's improved</h2>
+<ul>
+<li><strong>Broader opening methods.</strong> Links, images and clear card destinations open directly. Harder buttons can use a background copy of the page.</li>
+<li><strong>Better preparation in copied pages.</strong> The extension waits for the matching button to settle before pressing it once. Canva's Login popup has now been confirmed working in the maintainer's test.</li>
+<li><strong>One simple toggle.</strong> All opening methods run automatically. There are no extra feature switches or click-recording tools in this public release.</li>
+<li><strong>Updated fist artwork.</strong> A larger, centered fist and tab replace the earlier design, with clear ON and OFF states.</li>
+</ul>
+</section>
+<section aria-labelledby="use-title">
+<h2 id="use-title">Middle-click as usual</h2>
+<p>No Shift key is needed. Click the toolbar fist to turn the whole extension on or off; your choice is remembered.</p>
+<div class="state"><span><img src="icon.png" alt="">Purple · ON</span><span><img src="icon-disabled.png" alt="">Grey · OFF</span></div>
+<p>If the fist is hidden, open Firefox's Extensions menu and pin Force New Tab to the toolbar. Reload pages after first installing or replacing the extension. Ordinary left-clicks remain the way to use the website normally.</p>
+</section>
+<section aria-labelledby="copy-title">
+<h2 id="copy-title">Some buttons need a little longer</h2>
+<p>Known destinations open promptly. When no address can be found, an eligible button can be tried in a background copy instead. Allow up to <strong>15 seconds</strong> for that page to load and prepare.</p>
+<p>Switching tabs or looking at the copy is fine. Clicking or typing inside it stops the automatic press. A copy reloads the website, so temporary menus, unsaved information or changing feeds may not be identical.</p>
+<p>If copying definitely fails before a click is attempted, the final fallback may use the original button to learn its destination. The original page can change as a result. Once a click may have reached the copy, it is never automatically repeated on the original.</p>
+</section>
+<section aria-labelledby="report-title">
+<h2 id="report-title">Help improve website support</h2>
+<p>When reporting a problem, include your browser and extension versions, whether sign-in is needed, and whether the new tab showed the right page. Check the original page's appearance as well as its address.</p>
+<p>Public links are helpful. For private pages, describe the screen without sharing account numbers, passwords or private messages. There is no automatic report upload or telemetry.</p>
+<p><a href="https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/" target="_blank" rel="noopener noreferrer">Firefox extension reviews</a> · <a href="https://github.com/Sergic25/ForceNewTab/issues/new/choose" target="_blank" rel="noopener noreferrer">GitHub website reports</a> · <a href="https://github.com/Sergic25/ForceNewTab" target="_blank" rel="noopener noreferrer">Full README and source</a></p>
+</section>
+<footer>Requires Firefox 147 or newer. This page opens once per version after installation or update. Reopen it through the extension's Preferences in Add-ons Manager. No external connection is made by this page unless you follow a link.</footer>
+</main>
+</body>
+</html>
