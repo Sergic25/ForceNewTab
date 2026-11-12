@@ -1,0 +1,2 @@
+8a7a7d1fffdd78f7a1684ae474f75dbce7ebd57d8f58f5f6c64f553f6b62ca85  force-new-tab-2.0.1-public-source.zip
+5a735714c80007dbc34e519878df5be8ae9ffcfaae0e380c09183f54df443b1b  force-new-tab-2.0.1-public-unsigned.xpi

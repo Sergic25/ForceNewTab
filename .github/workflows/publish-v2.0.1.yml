@@ -1,0 +1,122 @@
+name: Publish verified 2.0.1 packages
+
+on:
+  push:
+    branches:
+      - codex/publish-v2.0.1
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-force-new-tab-v2.0.1
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify packages and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          
+          repo = "Sergic25/ForceNewTab"
+          target = "66d4e66c0297e4f618d748cd784950d09dac6ba1"
+          tag = "v2.0.1"
+          assets = [{"name":"force-new-tab-2.0.1-public-source.zip","sha":"66078eae4c519741042be12ccfd44a53318fc244"},{"name":"force-new-tab-2.0.1-public-unsigned.xpi","sha":"49c831b08d4fd44a012e414caeb0ac6c59cb0ba8"},{"name":"force-new-tab-2.0.1-SHA256SUMS.txt","sha":"2e1d485114b9c0d67be95f1b415f38eb2a68197c"}]
+          notes = "Force New Tab 2.0.1 expands middle-click support for links, images, cards and JavaScript-driven controls.\n\n- Automatic destination lookup and background-copy handling for eligible unresolved controls.\n- Improved copied-page readiness, including the maintainer-confirmed Canva Login popup.\n- Updated purple ON / grey OFF fist icons and clearer problem-reporting links.\n- Diagnostic recording is available separately on the testing branch.\n\nDownloads include the full public source, an unsigned extension package, and SHA-256 checksums. Firefox 147 or newer is required. The unsigned package requires Mozilla signing for normal installation in standard Firefox. Source can be loaded temporarily through about:debugging.\n\nAll 15 public test suites passed using simulated browser APIs. Signed installation and upgrade verification remain pending. Some controls can change the original page or send requests during the final fallback, and account changes can synchronize across copied tabs.\n\nReport website problems at https://github.com/Sergic25/ForceNewTab/issues/new/choose.\n"
+          api = "https://api.github.com/repos/" + repo
+          
+          def request(url, method="GET", payload=None, binary=None):
+              headers = {
+                  "Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "ForceNewTab-release-upload",
+              }
+              data = binary
+              if payload is not None:
+                  data = json.dumps(payload).encode()
+                  headers["Content-Type"] = "application/json"
+              elif binary is not None:
+                  headers["Content-Type"] = "application/octet-stream"
+              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=120) as response:
+                      return json.load(response)
+              except urllib.error.HTTPError as error:
+                  if error.code == 404 and method == "GET":
+                      return None
+                  raise RuntimeError(f"GitHub request failed with HTTP {error.code}") from None
+          
+          if request(api + "/git/ref/heads/main")["object"]["sha"] != target:
+              raise RuntimeError("Main changed since package verification")
+          
+          existing_tag = request(api + "/git/ref/tags/" + tag)
+          if existing_tag and existing_tag["object"]["sha"] != target:
+              raise RuntimeError("Existing tag points to another commit")
+          
+          contents = {}
+          for asset in assets:
+              blob = request(api + "/git/blobs/" + asset["sha"])
+              data = base64.b64decode(blob["content"])
+              actual = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+              if actual != asset["sha"]:
+                  raise RuntimeError("Blob verification failed for " + asset["name"])
+              contents[asset["name"]] = data
+          
+          checksums = contents["force-new-tab-2.0.1-SHA256SUMS.txt"].decode("ascii")
+          for line in checksums.splitlines():
+              expected, name = line.split("  ", 1)
+              if hashlib.sha256(contents[name]).hexdigest() != expected:
+                  raise RuntimeError("Package checksum mismatch for " + name)
+          
+          release = request(api + "/releases/tags/" + tag)
+          if release is None:
+              release = request(api + "/releases", "POST", {
+                  "tag_name": tag,
+                  "target_commitish": target,
+                  "name": "Force New Tab 2.0.1",
+                  "body": notes,
+                  "draft": True,
+                  "prerelease": False,
+              })
+          
+          known = {asset["name"]: asset for asset in release["assets"]}
+          for name, data in contents.items():
+              expected_digest = "sha256:" + hashlib.sha256(data).hexdigest()
+              asset = known.get(name)
+              if asset is None:
+                  if not release["draft"]:
+                      raise RuntimeError("Published release is missing an expected asset")
+                  url = "https://uploads.github.com/repos/" + repo + "/releases/" + str(release["id"]) + "/assets?name=" + urllib.parse.quote(name)
+                  asset = request(url, "POST", binary=data)
+              if asset["size"] != len(data) or asset.get("digest") != expected_digest:
+                  raise RuntimeError("Uploaded asset verification failed for " + name)
+              print("Verified " + name)
+          
+          if release["draft"]:
+              release = request(api + "/releases/" + str(release["id"]), "PATCH", {
+                  "draft": False,
+                  "make_latest": "true",
+              })
+          
+          published_tag = request(api + "/git/ref/tags/" + tag)
+          if published_tag["object"]["sha"] != target:
+              raise RuntimeError("Published tag does not match the verified commit")
+          print("Published " + release["html_url"])
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("Published [" + release["name"] + "](" + release["html_url"] + ") with three checksum-verified assets.\n")
+          
+          PY
