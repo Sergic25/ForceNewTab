@@ -105,6 +105,38 @@ function artworkFixture(){
   return {card,overlay,image,link,artist,play};
 }
 (async()=>{
+  await test('blank card metadata opens the paired video without activating the source',async()=>{
+    const h=harness();await flush();
+    const thumbnail=el('a',{href:'/watch?v=42','aria-hidden':'true'},[el('img')]);
+    const title=el('a',{href:'/watch?v=42'});
+    const blank=el('div',{},[el('span')]);
+    const menu=el('button',{'aria-label':'More actions'});
+    const card=el('div',{},[thumbnail,el('card-metadata',{},[el('h3',{},[title]),blank,menu])]);
+    const before=h.source.href;
+    blank.onActivate=()=>{h.source.href='https://generic.example.test/watch?v=42';};
+    h.gesture(blank);await settle(h);
+    assert.equal(h.created.length,1);
+    assert.equal(h.created[0].url,'https://generic.example.test/watch?v=42');
+    assert.equal(h.created[0].active,false);
+    assert.equal(h.source.href,before);
+    assert.equal(blank.activations,undefined);
+    assert.equal(card.activations,undefined);
+    assert.deepEqual(h.sent.map(message=>message.type),['fnt-open']);
+    assert.equal(h.resolve(menu),null);
+  });
+  await test('a paired-card destination changing during the gesture aborts opening',async()=>{
+    const h=harness();await flush();
+    const thumbnail=el('a',{href:'/watch?v=42'},[el('img')]);
+    const title=el('a',{href:'/watch?v=42'}),blank=el('div');
+    el('div',{},[thumbnail,el('div',{},[el('h3',{},[title]),blank])]);
+    for(const type of ['pointerdown','mousedown'])h.mouse(type,blank);
+    thumbnail.attrs.href=title.attrs.href='/watch?v=another';
+    for(const type of ['pointerup','mouseup','auxclick'])h.mouse(type,blank);
+    await settle(h);
+    assert.equal(h.created.length,0);
+    assert.equal(h.sent.length,0);
+    assert.equal(blank.activations,undefined);
+  });
   await test('ordinary anchor retains direct single background opening and source container',async()=>{
     const h=harness();await flush();const label=el('span');el('a',{href:'/target'},[label]);h.gesture(label);await flush();
     await settle(h); assert.equal(h.created.length,1);assert.equal(h.created[0].url,'https://generic.example.test/target');
@@ -227,20 +259,20 @@ function artworkFixture(){
     h.clock.tick(1000);await flush();await settle(h); assert.equal(h.created.length,1);
   });
 
-  await test('reported Bluesky image remains direct with original markup',async()=>{
+  await test('reported feed image remains direct with original markup',async()=>{
     const page='https://bsky.app/profile/womensartbluesky.bsky.social/post/3myogvioii225';
     const media='https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:u2zs2typsklaohqmfyxiunvy/bafkreify7n3wp4lfmfjvjku3gmfbuy24ztpswt5olbv5gjjzu5zt7clsye';
     const h=harness({page});await flush();const f=imageFixture(media);
     el('div',{role:'link','data-testid':'feedItem-by-womensartbluesky.bsky.social'},[f.button]);
     h.gesture(f.image);await flush();await settle(h); assert.equal(h.created.length,1);assert.equal(h.created[0].url,media);assert.equal(f.button.activations,undefined);
   });
-  await test('reported Bluesky comment remains direct with original markup',async()=>{
+  await test('reported comment card remains direct with original markup',async()=>{
     const h=harness({page:'https://bsky.app/profile/womensartbluesky.bsky.social/post/3myogvioii225'});await flush();
     const f=cardFixture();f.card.attrs['data-testid']='postThreadItem-by-bnerlich.bsky.social';
     f.timestamp.attrs.href='/profile/bnerlich.bsky.social/post/3myoopycfkc2q';
     h.gesture(f.text);await flush();await settle(h); assert.equal(h.created.length,1);assert.equal(h.created[0].url,'https://bsky.app/profile/bnerlich.bsky.social/post/3myoopycfkc2q');assert.equal(f.card.activations,undefined);
   });
-  await test('reported Spotify artwork remains direct with original identifiers',async()=>{
+  await test('reported artwork card remains direct with original identifiers',async()=>{
     const h=harness({page:'https://open.spotify.com/'});await flush();const f=artworkFixture();
     f.card.attrs['data-encore-id']='card';f.card.attrs['aria-labelledby']='card-title-spotify:album:7aJuG4TFXa2hmE4z1yxc3n-2';
     const title=f.link.children[0];title.attrs.id=f.card.attrs['aria-labelledby'];
@@ -251,7 +283,7 @@ function artworkFixture(){
   for(const [id,destination]of [
     ['login-button','https://accounts.spotify.com/login?continue=https%3A%2F%2Fopen.spotify.com%2F'],
     ['signup-button','https://www.spotify.com/signup?forward_url=https%3A%2F%2Fopen.spotify.com%2F']]){
-    await test('reported Spotify '+id+' retains opening without source navigation',async()=>{
+    await test('reported account '+id+' retains opening without source navigation',async()=>{
       const h=harness({page:'https://open.spotify.com/'});await flush();
       const label=el('span');const button=el('button',{'data-testid':id,type:'button'},[label]);let native;
       button.onActivate=()=>{native=h.nav(destination);};const before=h.source.href;h.gesture(label);await flush();

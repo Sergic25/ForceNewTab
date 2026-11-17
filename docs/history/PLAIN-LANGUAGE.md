@@ -7,7 +7,7 @@
 
 The add-on now looks for the same relationships on every website: actual links,
 a card's labelled title, a unique timestamp/bookmark link, and the clicked image.
-It no longer asks whether the website is Spotify, Bluesky or Reddit.
+These relationships are identified from the page's structure.
 
 For a button whose address is hidden, the add-on watches before pressing it once.
 On supported Firefox navigation events it can catch the destination, stop that

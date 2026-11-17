@@ -1,0 +1,5 @@
+.report-actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 10px}
+button{font:inherit;padding:8px 14px;border:1px solid var(--accent);border-radius:7px;background:var(--notice);color:var(--text);cursor:pointer}
+button:disabled{opacity:.55;cursor:default}
+textarea{display:block;width:100%;min-height:220px;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--text);font:13px/1.45 ui-monospace,monospace}
+#report-status{font-weight:600}#click-report-help{color:var(--muted);font-size:14px}

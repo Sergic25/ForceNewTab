@@ -95,7 +95,7 @@ const extraCases=String.raw`
  assert.equal(simulatedProcess.exitCode,0,errors.join('\n'));
  assert.equal(errors.length,0,errors.join('\n'));
  const actual=lines.filter(line=>line.startsWith('PASS generalized integration')).length;
- assert.equal(actual,52,'All32originalchecks plus20hookchecks must run');
+ assert.equal(actual,54,'All 34 base checks plus 20 hook checks must run');
  assert.equal(fs.readFileSync(filename,'utf8'),before,'Original integration suite must remain unchanged');
- console.log('52 isolation integration checks passed (32 unchanged compatibility replays + 20 hook checks; mocked DOM/browser).');
+ console.log('54 isolation integration checks passed (34 compatibility replays + 20 hook checks; mocked DOM/browser).');
 })().catch(error=>{console.error(error);process.exitCode=1;});

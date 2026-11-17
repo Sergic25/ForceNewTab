@@ -111,6 +111,60 @@
     return safeURL(image.currentSrc || image.getAttribute("src"), base);
   }
 
+  function cardExcluded(node) {
+    return action(node) || editing(node) || disabled(node) || node.hasAttribute("hidden") ||
+      node.hasAttribute("inert") || ["form", "label"].includes(node.localName);
+  }
+  function landmark(node) {
+    return ["html", "body", "main", "nav", "aside", "header", "footer"].includes(node.localName) ||
+      ["main", "navigation", "complementary", "banner", "contentinfo"].includes(role(node));
+  }
+  function pairedDestination(owner, base, budget) {
+    const stack = [{node: owner, branch: null, heading: null, link: null}];
+    const headings = new Set(), titles = new Map(), images = [];
+    let visited = 0;
+    while (stack.length) {
+      if (++visited > 256 || --budget.remaining < 0) return ambiguous;
+      let {node, branch, heading, link} = stack.pop();
+      if (cardExcluded(node) || landmark(node)) continue;
+      const anchor = node.localName === "a" && node.hasAttribute("href");
+      if (node !== owner && component(node) && !anchor) continue;
+      if (/^h[1-6]$/.test(node.localName) || role(node) === "heading") {
+        heading = node;
+        headings.add(node);
+        if (headings.size > 1) return ambiguous;
+      }
+      if (anchor) link = safeURL(node.getAttribute("href"), base);
+      if (heading && link) titles.set(link, branch);
+      if (node.localName === "img" && link) images.push({url: link, branch});
+      const children = node.children || [];
+      if (stack.length + children.length + visited > 256) return ambiguous;
+      for (const child of children) {
+        stack.push({node: child, branch: branch || child, heading, link});
+      }
+    }
+    if (titles.size > 1) return ambiguous;
+    if (headings.size !== 1 || titles.size !== 1) return null;
+    const [url, titleBranch] = titles.entries().next().value;
+    // Require the heading and linked image to meet here in separate branches.
+    // A neighboring card nested in one branch cannot donate its destination.
+    const media = new Set(images.filter(image => image.branch !== titleBranch).map(image => image.url));
+    if (media.size > 1) return ambiguous;
+    return media.has(url) ? url : null;
+  }
+  function pairedCardDestination(elements, base) {
+    if (elements.some(cardExcluded)) return null;
+    const budget = {remaining: 2048};
+    for (const owner of elements.slice(0, 16)) {
+      if (landmark(owner)) break;
+      const url = pairedDestination(owner, base, budget);
+      if (url === ambiguous) return null;
+      if (url) return url;
+      if (component(owner)) break;
+    }
+    return null;
+  }
+
   function resolve(path, base, _page = base) {
     const elements = path.filter(node => node && node.nodeType === 1);
     const enclosing = elements.find(node => ["a", "area"].includes(node.localName) && node.hasAttribute("href"));
@@ -131,7 +185,7 @@
     if (labelled) return labelled;
     const linked = componentDestination(elements, base, ownerIndex);
     if (linked === ambiguous) return null;
-    return linked || mediaDestination(elements, base);
+    return linked || mediaDestination(elements, base) || pairedCardDestination(elements, base);
   }
   globalThis.FNT = Object.freeze({safeURL, resolve});
 })();

@@ -303,13 +303,13 @@ context.browser={storage:{onChanged:{addListener(){throw Error('Automatic routin
 vm.runInContext(${JSON.stringify(componentSource)}, context, {filename:'component-link.js'});
 vm.runInContext(${JSON.stringify(appSource)}, context, {filename:'app-data.js'});
 assert.notEqual(context.FNT.resolve,__originalResolve,'app-data wrapper must actually be installed');
-`),33,'PASS generic resolver');
+`),49,'PASS generic resolver');
   const integrated=await replay('generalized-regressions.cjs',source=>{
     source=once(source,"['resolver.js','content.js']","['resolver.js','component-link.js','app-data.js','content.js']");
     const summary="  console.log(count+' generalized integration checks passed (real modules, mocked DOM/browser; Firefox retest still required).');";
     return once(source,summary,extraCases+'\n'+summary);
-  },58,'PASS generalized integration');
+  },60,'PASS generalized integration');
   console.log(generic+' original resolver checks replayed with automatic app-data resolution.');
-  console.log('32 original integration checks replayed with automatic app-data resolution; 26 additional real-module integration checks passed.');
+  console.log('34 integration checks replayed with automatic app-data resolution; 26 additional real-module integration checks passed.');
   console.log((generic+integrated)+' app-data compatibility/integration checks passed (mocked browser/DOM; no native Firefox/Xray claim).');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -51,12 +51,12 @@
       ? response.reason : "activation-unconfirmed";
   }
   function status(op, state, reason, copyKept = false) {
-    const summary = {state, reason, activated: op.mayActivated === true, copyKept: copyKept === true, updatedAt: now(), build: "2.0.1"};
+    const summary = {state, reason, activated: op.mayActivated === true, copyKept: copyKept === true, updatedAt: now(), build: "unknown"};
     if (state === "activated" || state === "uncertain") summary.effectConfirmed = false;
     if (typeof op.senderAddressMatchesCurrent === "boolean") summary.senderAddressMatchesCurrent = op.senderAddressMatchesCurrent;
     try {
       const version = browser.runtime.getManifest?.().version;
-      if (typeof version === "string" && version.length <= 16 && /^\d+(?:\.\d+){0,3}(?:[a-z][0-9a-z.-]*)?$/i.test(version)) summary.manifestVersion = version;
+      if (typeof version === "string" && version.length <= 16 && /^\d+(?:\.\d+){0,3}(?:[a-z][0-9a-z.-]*)?$/i.test(version)) summary.build = summary.manifestVersion = version;
     } catch {}
     try { void Promise.resolve(browser.storage.local.set({fntLastIsolationResult: summary})).catch(() => {}); } catch {}
     return Promise.resolve();

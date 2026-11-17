@@ -16,12 +16,12 @@ The included XPI is unsigned until Mozilla signs it. Loading manifest.json throu
 ## Try it
 
 1. Extract the source ZIP to Desktop. In Firefox, open about:debugging → This Firefox → Load Temporary Add-on, then select this folder's manifest.json. Refresh the test page.
-2. Keep **Use background copies for unresolved controls** ON in Preferences. Keep the app-data setting ON for the working direct X case.
+2. Keep **Use background copies for unresolved controls** ON in Preferences. Keep the app-data setting ON for the working direct story-card case.
 3. Middle-click the unresolved control normally. Allow about 10 seconds, up to 15 seconds. You can switch tabs or view the copy while it prepares.
 4. Avoid clicking or typing inside the copy until it finishes. That stops automatic replay so the addon does not press a control after you begin using the page. Source-page interaction, closing a tab, navigation or disabling the option can also cancel preparation.
 5. Check the destination and source page. Retest known links/cards/images too: they should still open directly without waiting for a copy.
 
-The user confirmed that the ordinary-middle-click copy path in 4.2.4 worked on the tested Questrade control after a wait and on the tested Bluesky login/signup controls. That build cancelled when the copy was selected too early. Version 4.2.5 permits passive tab switching while retaining cancellation for actual copied-page input. The new focus behavior still needs a live Firefox retest.
+The user confirmed that the ordinary-middle-click copy path in 4.2.4 worked on the tested account-navigation control after a wait and on the tested feed login/signup controls. That build cancelled when the copy was selected too early. Version 4.2.5 permits passive tab switching while retaining cancellation for actual copied-page input. The new focus behavior still needs a live Firefox retest.
 
 The order is: direct destination → optional copy for an unresolved control → existing source-page discovery if the copy is unavailable or definitely fails before activation. Source discovery comes last because pressing the original control may already change its page before a destination becomes visible. Once a copied click might have run, the addon never automatically repeats it on the source. A copy that you are using is retained.
 
@@ -37,7 +37,7 @@ A separate, off-by-default experiment can run an unresolved control in a new ina
 
 This revision fixes Shift cancelling its own gesture or a preparing copy. Shift intent is retained when released before the mouse. Ordinary middle-click and known destinations keep their previous path. The new report includes the actual experiment/toolbar flags and safe input categories to distinguish an unavailable shortcut from a preparation failure. The previous report was consistent with an input cancellation, but did not prove which event caused it.
 
-This revision adds matching through accessible **open shadow roots** (separate component trees within the page). The supplied 4.2.1 report showed the original fallback with Shift and both switches ON; it did not reveal the failed target check. Open-root exclusion was a verified implementation limitation, but has not yet been confirmed as Questrade's cause. The new **copyEligibility** report and persisted decline reason make remaining failures explicit.
+This revision adds matching through accessible **open shadow roots** (separate component trees within the page). The supplied 4.2.1 report showed the original fallback with Shift and both switches ON; it did not reveal the failed target check. Open-root exclusion was a verified implementation limitation, but has not yet been confirmed as the cause of the reported account-page failure. The new **copyEligibility** report and persisted decline reason make remaining failures explicit.
 
 A version 2 locator records a bounded chain of uniquely identifiable shadow hosts plus the control identity. It never guesses a position among duplicate hosts. Closed/inaccessible roots, stale hosts, ambiguity, excessive depth and full-path form/hidden/editing exclusions reject. The control label and host attribute values remain transient memory and are omitted from the saved audit/status.
 
@@ -47,13 +47,13 @@ The supplied 4.2.2 report confirms successful matching across two open roots. It
 
 ## Try it
 
-1. Extract the ZIP to Desktop; load this folder's manifest.json and refresh Questrade.
-2. In the addon's Preferences enable **Shift + middle-click copy experiment**. Keep the existing app-data setting ON for the working X case.
+1. Extract the ZIP to Desktop; load this folder's manifest.json and refresh the account page.
+2. In the addon's Preferences enable **Shift + middle-click copy experiment**. Keep the existing app-data setting ON for the working story-card case.
 3. Hold Shift while middle-clicking New account once. Keep the original tab selected and wait up to 15 seconds, plus a brief cleanup if preparation fails.
-4. Check the new tab's destination, the original view/title/address, and ordinary middle-click on the previously working X/Spotify/Bluesky controls.
+4. Check the new tab's destination, the original view/title/address, and ordinary middle-click on the previously working story, artwork and feed controls.
 5. Preferences shows the last copy status; a copied diagnostic report includes that safe status. Turning this experiment off restores the existing path.
 
-This remains a test build. A successful automated fixture is not a confirmed Questrade/Firefox result.
+This remains a test build. A successful automated fixture is not a confirmed live Firefox result for the account control.
 
 ## What is isolated
 
@@ -74,10 +74,10 @@ Primary API reference: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/
 ## Retained diagnostic notes from 4.1.4
 
 
-This is a diagnostic build. It preserves the working 4.1.3 routing modules and blue/grey fist icons byte for byte. It does not yet fix Questrade's partly changed source view or add site-specific routes. No permissions changed.
+This is a diagnostic build. It preserves the working 4.1.3 routing modules and blue/grey fist icons byte for byte. It does not yet fix the partly changed source view reported for the account page or add site-specific routes. No permissions changed.
 
 1. Extract the ZIP to Desktop and load this folder's manifest.json as a temporary add-on. Refresh the page being tested.
-2. Keep the app-data option in its existing state (ON for the working X test).
+2. Keep the app-data option in its existing state (ON for the working story-card test).
 3. Open the add-on Preferences, choose **Record next middle-click**, then middle-click the troublesome button once.
 4. Wait about **10 seconds** without clicking or typing on the source page, return to Preferences, and copy the updated report.
 
@@ -87,7 +87,7 @@ The outcome contains synthetic-click counts, redacted navigation addresses/cance
 
 Reporting remains explicit, bounded and local. It does not copy form values, cookies, handler code, full framework state or URL queries/fragments/credentials. Address paths can contain account/content identifiers; review a report before sharing it. Own-property reflection may run website Proxy traps, so an explicit inspection cannot promise no website code will run.
 
-The supplied 4.1.3 report and user observation confirmed the tested X story opens directly with source preservation. Broader live Firefox coverage, install/update checks, Mozilla validation and signing remain outstanding.
+The supplied 4.1.3 report and user observation confirmed the tested story card opens directly with source preservation. Broader live Firefox coverage, install/update checks, Mozilla validation and signing remain outstanding.
 
 ## Retained 4.1.3 implementation notes
 
@@ -108,7 +108,7 @@ Reports include the configured limits, deepest path and per-candidate proof resu
 
 The supplied 4.1.0 report established that the clicked card already holds its
 story address in component navigation data named link.pathname. This build adds
-a generic rule for that structure. The reported X story was subsequently user-confirmed working in Firefox. There are no new
+a generic rule for that structure. The reported story card was subsequently user-confirmed working in Firefox. There are no new
 website-specific routes or permissions. The four original navigation modules,
 toolbar toggle and blue/grey fist icons remain unchanged from 4.0.2.
 
@@ -181,7 +181,7 @@ existing fallback remain available when app data cannot supply a safe address.
 
 ## Existing 4.0.0 behavior
 The same destination rules now apply across permitted websites. Loaded runtime
-code contains no Spotify, Bluesky or Reddit hostname checks, custom provider test
+code contains no hostname checks, custom provider test
 identifiers, route patterns or fixed account-page destinations.
 
 **Requires Firefox 147 or newer.** Firefox Developer Edition 159 was found on this

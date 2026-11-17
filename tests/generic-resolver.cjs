@@ -204,6 +204,112 @@ test('production resolver has no site domains routes custom test IDs or label pr
   for(const value of ['bsky.app','spotify.com','reddit.com','data-testid','data-encore-id','feedItem-by-','postThreadItem-by-','card-title-spotify:','/profile/','/album/'])
     assert.equal(source.includes(value),false,value);
 });
+function pairedCard({href='/watch?v=video-42', titleHref=href}={}) {
+  const image=el('img',{src:'https://media.example.test/thumbnail.jpg'});
+  const thumbnail=el('a',{href,'aria-hidden':'true'},[el('media-preview',{},[image])]);
+  const title=el('a',{href:titleHref},[el('span')]);
+  const heading=el('h3',{},[title]);
+  const blank=el('div',{},[el('span',{},[],{textContent:'3 weeks ago'})]);
+  const author=el('a',{href:'/channel/author'});
+  const menu=el('button',{'aria-label':'More actions'});
+  const metadata=el('card-metadata',{},[heading,blank,author,menu]);
+  const owner=el('div',{},[thumbnail,metadata]);
+  return {owner,thumbnail,image,title,heading,blank,author,menu,metadata};
+}
+
+test('blank metadata area resolves matching title and thumbnail links',()=>{
+  const f=pairedCard();
+  assert.equal(resolve(f.blank),'https://example.test/watch?v=video-42');
+  assert.equal(resolve(f.blank.children[0]),'https://example.test/watch?v=video-42');
+  assert.equal(resolve(f.owner),'https://example.test/watch?v=video-42');
+});
+test('paired-card inference survives renamed components and unrelated routes',()=>{
+  const f=pairedCard({href:'/documents/123?view=full#intro'});
+  f.metadata.localName='unrelated-component';
+  assert.equal(resolve(f.blank,'https://other.test/feed'),'https://other.test/documents/123?view=full#intro');
+});
+test('paired cards preserve direct title thumbnail and author destinations',()=>{
+  const f=pairedCard();
+  assert.equal(resolve(f.title),'https://example.test/watch?v=video-42');
+  assert.equal(resolve(f.image),'https://example.test/watch?v=video-42');
+  assert.equal(resolve(f.author),'https://example.test/channel/author');
+});
+test('nested action and editing controls never inherit a paired-card route',()=>{
+  for(const tag of ['button','input','select','textarea','summary','label','form']) {
+    const f=pairedCard();
+    f.blank.localName=tag;
+    assert.equal(resolve(f.blank),null,tag);
+  }
+  const f=pairedCard(); f.blank.isContentEditable=true;
+  assert.equal(resolve(f.blank),null);
+  assert.equal(resolve(f.menu),null);
+});
+test('disabled card ancestors prevent paired-card inference',()=>{
+  for(const attrs of [{disabled:''},{'aria-disabled':'true'},{hidden:''},{inert:''}]) {
+    const f=pairedCard(); Object.assign(f.owner.attrs,attrs);
+    assert.equal(resolve(f.blank),null);
+  }
+});
+test('title and thumbnail must agree on the entire URL',()=>{
+  for(const href of ['/watch?v=other','/watch?v=video-42&t=60','#','javascript:bad()']) {
+    assert.equal(resolve(pairedCard({titleHref:href}).blank),null,href);
+  }
+});
+test('ARIA headings and headings wrapped in anchors are supported',()=>{
+  const f=pairedCard(); f.heading.localName='div'; f.heading.attrs.role='heading';
+  assert.equal(resolve(f.blank),'https://example.test/watch?v=video-42');
+  const g=pairedCard();
+  g.title.children=[el('h3')];g.title.children[0].parentElement=g.title;
+  g.metadata.children[0]=g.title;g.title.parentElement=g.metadata;
+  assert.equal(resolve(g.blank),'https://example.test/watch?v=video-42');
+});
+test('an author avatar within metadata does not replace the thumbnail',()=>{
+  const f=pairedCard();const avatar=el('img',{src:'https://media.test/avatar'});
+  f.author.children=[avatar];avatar.parentElement=f.author;
+  assert.equal(resolve(f.blank),'https://example.test/watch?v=video-42');
+});
+test('other video cards cannot supply destinations for surrounding whitespace',()=>{
+  const f=pairedCard(),g=pairedCard({href:'/watch?v=other'}),gap=el('div');
+  el('div',{},[f.owner,gap,g.owner]);
+  assert.equal(resolve(gap),null);
+  assert.equal(resolve(f.blank),'https://example.test/watch?v=video-42');
+  assert.equal(resolve(g.blank),'https://example.test/watch?v=other');
+});
+test('even one neighboring card cannot donate its route to an unrelated sibling',()=>{
+  const f=pairedCard(),gap=el('div');el('div',{},[gap,f.owner]);
+  assert.equal(resolve(gap),null);
+});
+test('a nested semantic component cannot borrow the outer paired-card route',()=>{
+  const f=pairedCard();f.blank.attrs.role='listitem';
+  assert.equal(resolve(f.blank),null);
+});
+test('multiple headings prevent inferred navigation even when URLs repeat',()=>{
+  const f=pairedCard();
+  const second=el('h3',{},[el('a',{href:'/watch?v=video-42'})]);
+  f.metadata.children.push(second);second.parentElement=f.metadata;
+  assert.equal(resolve(f.blank),null);
+});
+test('multiple outside media destinations remain ambiguous',()=>{
+  const f=pairedCard();
+  const other=el('a',{href:'/watch?v=other'},[el('img',{src:'https://media.test/other'})]);
+  f.owner.children.push(other);other.parentElement=f.owner;
+  assert.equal(resolve(f.blank),null);
+});
+test('hidden title links do not establish a paired destination',()=>{
+  const f=pairedCard();f.heading.attrs.hidden='';
+  assert.equal(resolve(f.blank),null);
+});
+test('a page landmark cannot become an inferred card',()=>{
+  for(const tag of ['body','main','nav','aside','header','footer']) {
+    const f=pairedCard();f.owner.localName=tag;
+    assert.equal(resolve(f.blank),null,tag);
+  }
+});
+test('oversized cards decline rather than using an incomplete scan',()=>{
+  const f=pairedCard();
+  for(let i=0;i<600;i++){const n=el('span');f.metadata.children.push(n);n.parentElement=f.metadata;}
+  assert.equal(resolve(f.blank),null);
+});
 console.log(passed+' generic resolver tests passed (pure DOM simulations).');
 
 

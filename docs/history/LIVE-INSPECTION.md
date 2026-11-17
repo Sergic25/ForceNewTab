@@ -1,89 +1,35 @@
 > **Historical development record — not current usage or release guidance.**
-> This document preserves earlier implementation notes, experiments and test results.
-> Version numbers, shortcuts, icons and verification status below may describe older builds.
-> See the [current README](../../README.md) for this development preview.
+> This document describes earlier implementation notes, experiments and test results by control type.
+> See the [current README](../../README.md) for current behavior.
 
 # Live DOM inspection behind 3.0.2
 
-Inspected 2026-10-25 in the supported in-app browser, logged out. This is live
-page-structure evidence, not a Firefox extension integration test.
+Inspected October 25, 2026 in the supported in-app browser, logged out. This is observed page-structure evidence, not a Firefox extension integration test. Destination addresses and page-specific identifiers are omitted here.
 
-## Supplied Bluesky post
+## Feed image and reply card
 
-https://bsky.app/profile/womensartbluesky.bsky.social/post/3myogvioii225
+The inspected image was an IMG within a native BUTTON with role=button. The button's aria-label matched the image's alt text, with no enclosing href.
 
-The cat/stained-glass image is an IMG within a native BUTTON role=button.
-The button aria-label matches the image alt text. There is no enclosing href.
-Its actual displayed image address is:
+Version 3.0/3.0.1 simulated a click when no DOM URL was known. A lightbox could open without an address change, leaving the navigation observer with no destination. The new helper read the displayed image address without activating the button. It did not manufacture a full-resolution media address.
 
-https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:u2zs2typsklaohqmfyxiunvy/bafkreify7n3wp4lfmfjvjku3gmfbuy24ztpswt5olbv5gjjzu5zt7clsye
+A reply card was a DIV with role=link. It contained profile/avatar anchors and an author-associated timestamp link, while the container itself had no href. The early helper selected a unique owned post permalink in a recognized card and rejected ambiguous routes or nested actions. That historical experiment relied on implementation-specific identifiers; later versions replaced those assumptions with generic semantic ownership.
 
-Version 3.0/3.0.1 simulates a click when no DOM URL is known. A lightbox can open
-without an address change, so the navigation observer has nothing to open. The
-new helper reads this existing image address without activating the button.
-It does not guess a full-resolution CDN URL.
+## Artwork associated with a title
 
-Reply-card example: DIV role=link data-testid=postThreadItem-by-bnerlich.bsky.social.
-It contains profile/avatar anchors and an own-author timestamp link:
- /profile/bnerlich.bsky.social/post/3myoopycfkc2q
+The inspected artwork control was a DIV with role=button. Its aria-labelledby referred to a title ID and a subtitle ID. The parent card had role=listitem and referenced the same title.
 
-The container itself has no href. The new helper uses a unique own-author post
-permalink inside that exact recognized card. The public author's profile feed
-was also inspected and uses DIV role=link data-testid=feedItem-by-<author>.
-Ambiguous own-author routes and nested action buttons are not guessed.
-
-## Spotify public album card
-
-https://open.spotify.com/
-
-Observed artwork control for HIT ME HARD AND SOFT:
-DIV role=button aria-labelledby referencing
-card-title-spotify:album:7aJuG4TFXa2hmE4z1yxc3n-2 plus a subtitle ID.
-
-Its parent is DIV data-encore-id=card role=listitem, aria-labelledby referencing
-that same title ID. The ID resolves to P inside an A with
-href=/album/7aJuG4TFXa2hmE4z1yxc3n, inside the same card.
-The artist link has a separate route and is not chosen.
-
-The new helper follows this explicit accessible-title relationship; it does not
-pick the first nearby anchor. Separate Play/menu controls without that title
-relationship retain existing fallback handling.
+The title ID resolved to a paragraph inside an anchor in the same card. A creator link had a separate destination. The helper followed the explicit accessible-title relationship; it did not choose the first nearby anchor. Separate playback/menu controls without that relationship retained existing fallback handling.
 
 ## Validation boundary
 
-61 existing content/background checks, 23 discovery checks, 9 Reddit checks
-and 24 added site-adapter checks pass: 117 simulated checks total.
-The new tests include complete content-event paths proving direct fnt-open,
-without fnt-arm or native source activation for the observed structures.
+At that revision, 61 content/background checks, 23 discovery checks, 9 image-rule checks and 24 adapter checks passed: 117 simulated checks total. The new tests included complete content-event paths proving direct fnt-open without fnt-arm or source activation for the observed structures.
 
-Still required: load3.0.2 in Firefox, refresh target pages and test actual middle
-clicks, focus/new-tab counts and source URL/view. Signed-in layouts, overlays and
-future site changes can differ. No claim of a completed Firefox retest is made.
+A Firefox retest remained required: reload the target pages and check actual middle-clicks, focus, tab counts and source address/view. Signed-in layouts, overlays and later layout changes could differ. No completed Firefox retest was claimed.
 
+## 3.0.3 account-button inspection
 
-##3.0.3 Spotify account-button inspection
+On October 25, 2026, a public page header was inspected in the supported in-app browser. Login and signup were native BUTTON elements with stable test identifiers and no href. Ordinary clicks revealed separate authentication destinations. Locale-free routes were then opened independently and displayed the corresponding account pages.
 
-On2026-10-25 the public Spotify header was inspected in the supported in-app
-browser. Both controls are native BUTTON elements with stable attributes:
-data-testid=login-button and data-testid=signup-button. Neither exposes an href.
+No credentials were entered, forms submitted or accounts created. No session-generated flow tokens were copied into extension code.
 
-An ordinary click on Log in navigated to:
-https://accounts.spotify.com/en-GB/login?continue=https%3A%2F%2Fopen.spotify.com%2F
-
-An ordinary click on Sign up navigated to:
-https://www.spotify.com/ca-en/signup?forward_url=https%3A%2F%2Fopen.spotify.com%2F
-
-Canonical no-locale routes were then opened independently and rendered the same
-Welcome back and Sign up to start listening pages, respectively:
-https://accounts.spotify.com/login?continue=https%3A%2F%2Fopen.spotify.com%2F
-https://www.spotify.com/signup?forward_url=https%3A%2F%2Fopen.spotify.com%2F
-
-No credentials were entered, no forms submitted, no account created and no
-session-generated flow tokens copied into extension code. The server selects
-locale and starts its own fresh account flow in the destination tab.
-
-Version3.0.3 adds only a native-button-ID helper for those two actions on HTTPS
-open.spotify.com and calls it before the unchanged artwork-card helper. The
-current source address is encoded as continue/forward_url. Actual enclosing
-anchors retain existing priority. This avoids the source click used by discovery.
-Disabled buttons and unrelated lookalike controls retain existing behavior.
+The 3.0.3 experiment used known button identifiers and fixed authentication endpoints to avoid source activation. Enclosing anchors retained priority; disabled buttons and unrelated lookalike controls were excluded. These historical assumptions were later removed in favor of shared destination rules and runtime navigation discovery; see [migration notes](MIGRATION.md).

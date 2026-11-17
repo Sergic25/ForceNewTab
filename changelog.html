@@ -21,7 +21,7 @@ a{color:var(--accent)}.state{display:flex;gap:22px;flex-wrap:wrap;margin:16px 0}
 </head>
 <body>
 <main>
-<header><img src="icon@2x.png" alt="Force New Tab purple fist"><div><h1>Force New Tab</h1><p>What's new in 2.0.1</p></div></header>
+<header><img src="icon@2x.png" alt="Force New Tab purple fist"><div><h1>Force New Tab</h1><p>What's new in 2.0.2 · Test build</p></div></header>
 <aside class="notice" aria-labelledby="expect-title">
 <h2 id="expect-title">More middle-clicks, fewer dead ends</h2>
 <p>Force New Tab tries to open your destination in a background tab, including many cards and buttons that normally ignore middle-click. It uses the same rules across permitted websites.</p>
@@ -32,11 +32,10 @@ a{color:var(--accent)}.state{display:flex;gap:22px;flex-wrap:wrap;margin:16px 0}
 <section aria-labelledby="new-title">
 <h2 id="new-title">What's improved</h2>
 <ul>
-<li><strong>Broader opening methods.</strong> Links, images and clear card destinations open directly. Harder buttons can use a background copy of the page.</li>
-<li><strong>Better preparation in copied pages.</strong> The extension waits for the matching button to settle before pressing it once. Canva's Login popup has now been confirmed working in the maintainer's test.</li>
-<li><strong>One simple toggle.</strong> All opening methods run automatically. There are no extra feature switches or click-recording tools in this public release.</li>
-<li><strong>Updated fist artwork.</strong> A larger, centered fist and tab replace the earlier design, with clear ON and OFF states.</li>
+<li><strong>Better opening from card whitespace.</strong> Matching heading and thumbnail links can identify the destination when you middle-click the surrounding card area.</li>
+<li><strong>Direct opening.</strong> When that match is clear, the destination opens without activating the original card. Nearby action buttons and unrelated cards are excluded from this new rule.</li>
 </ul>
+<p>This build is for testing in Firefox. Try the blank area around a card's heading and check that the correct destination opens while the original page stays unchanged.</p>
 </section>
 <section aria-labelledby="use-title">
 <h2 id="use-title">Middle-click as usual</h2>

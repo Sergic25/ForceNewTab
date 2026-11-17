@@ -4,24 +4,21 @@ Use **Firefox 147 or newer** and note the browser and extension versions. This l
 
 Keep the toolbar **ON (purple)**. All opening methods run automatically. There are no feature checkboxes or click recorder in the public extension. Compare a fresh profile with an existing test profile when possible.
 
-## Websites and controls
+## Controls and layouts
 
-| Website | Try separately |
+Use pages you already visit. Test each part separately, since a card can contain several destinations and actions.
+
+| Structure | Try separately |
 | --- | --- |
-| [Canva](https://www.canva.com/templates/) | Login: the maintainer confirmed that middle-click now opens a copy with the login popup. Also try template thumbnails and titles. |
-| [Bluesky](https://bsky.app/) | Post, image, comment, and signed-out login/signup buttons |
-| [Spotify](https://open.spotify.com/) | Album artwork, title, artist, login, and signup |
-| [X](https://x.com/) | Posts, comments, images, and a story in Today's News when available |
-| [Reddit](https://www.reddit.com/) | Feed card, opened-post image, and comments link |
-| [Instagram](https://www.instagram.com/) | Profile grid and Your Activity → Likes |
-| [Sharesies](https://app.sharesies.com/) | Investment navigation in search and personal investments; this reviewer-reported area has not been verified by the maintainer |
-| [YouTube](https://www.youtube.com/) | Video thumbnail, title, and channel link |
-| [GitHub](https://github.com/) | Repository, issue, and pull-request links |
-| [Pinterest](https://www.pinterest.com/) | Pin image, title, and filter navigation |
-| [Airbnb](https://www.airbnb.com/) | Listing photos, titles, and card space |
-| [SoundCloud](https://soundcloud.com/discover) | Artwork, track/playlist titles, and artist links; check whether source playback continues |
-| [GitLab](https://gitlab.com/gitlab-org/gitlab/-/work_items) | Issue titles, rows, and author links |
-| [TradingView](https://www.tradingview.com/ideas/) | Idea cards, thumbnails, and author links |
+| Standard links | Link text, an image inside a link, and nested text or icons |
+| Cards with headings and thumbnails | Heading, thumbnail, blank metadata area, author link, and neighboring card whitespace |
+| Feed and comment cards | Card background, timestamp, comments link, avatar, and image preview |
+| Media libraries | Artwork, title, creator link, and playlist entry; check whether source playback continues |
+| Grids and search results | Image tile, title, card padding, and items loaded after scrolling |
+| Lists and sidebars | Row title, row whitespace, nested page link, and separate expand/menu controls |
+| Signed-in navigation | Existing account or document navigation, including navigation after the page changes its view |
+| Login and other dialogs | Controls with a separate destination versus controls that only open a popup |
+| Action and editing controls | Ordinary left-click behavior for menus, playback, text fields, and form controls |
 
 ## For each control
 
@@ -31,7 +28,7 @@ Keep the toolbar **ON (purple)**. All opening methods run automatically. There a
 4. Repeat with newly loaded items after scrolling. Check ordinary left-clicks, text fields, two deliberate middle-clicks, and toggling OFF and ON again. Known destinations should keep opening promptly.
 5. Where access is permitted, check Firefox containers and private windows. Temporary installations end at restart. Persistent installation and upgrade checks need an appropriate Mozilla-signed package.
 
-The previously reported Questrade account-navigation control is a signed-in test for its owner. Do not create an account solely for this checklist or include private account addresses in a public report. Note popup-only behavior separately from a failed link opening.
+Use an existing account for signed-in navigation checks. Do not create an account solely for this checklist or include private account addresses in a public report. Test navigation with harmless sample content; do not use purchase, order, send or delete actions as navigation checks. Note popup-only behavior separately from a failed link opening.
 
 ## Share a result
 

@@ -23,46 +23,39 @@ Version 4.1.4 prioritizes opening the intended destination. Record TWO results f
 
 A modal (a panel displayed over the current page), Play/Pause, a Like button, or an expand/collapse button may have no destination page at all. Version 4.1.4 can trigger such an action while attempting to discover a destination; record the effect and absence of a destination separately. An image inside a real link should open that link; a clicked unlinked image can open its displayed image address.
 
-Use existing navigation items, sample documents and a test board. For Sharesies, test investment-name navigation only, not Buy/Sell/order controls. For mail/chat, do not use Send, Delete or other action buttons as navigation tests. Opening a destination can itself mark content read or cause account updates that later appear in the source tab; note those separately from the source responding to the middle-click.
+Use existing navigation items, sample documents and a test board. For investment pages, test investment-name navigation only, not Buy/Sell/order controls. For mail/chat, do not use Send, Delete or other action buttons as navigation tests. Opening a destination can itself mark content read or cause account updates that later appear in the source tab; note those separately from the source responding to the middle-click.
 
-## First priority: reported problem sites
+## Reported controls to revisit
 
-| Site | Exact area/control to try | Why it is in this list |
-|---|---|---|
-| [Instagram](https://www.instagram.com/) | Sign in; Your Activity → Likes. Middle-click a liked-post tile, its image and any visible post/profile link separately. Also compare a profile's post grid. | The supplied earlier review excerpt reports opening both the original and new tab here. This report was supplied by the user; it was not independently found in the current indexed AMO listing. |
-| [Sharesies](https://app.sharesies.com/) | Compare an investment-name/result in the main investment search with a holding/investment row under the reported `/profile/personal/invest/` route. Use your normal region-specific Sharesies sign-in if redirected. | The indexed AMO review says main investment search worked but this personal investment page did nothing. Test both views, not just the homepage. |
-| [Bluesky](https://bsky.app/) | In a feed/search, try the post's empty card area, timestamp, author/avatar and linked image separately. After each, check the source view and back-button history. | The indexed AMO review reports double-opening and back-button problems. Image lightboxes are a separate no-destination case. |
+These reports concern individual controls and remain test targets, not compatibility certifications.
 
-Source: [Force New Tab reviews on Mozilla Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/). The live review page was unavailable to the research tool; the current search index returned the piecevcake review about Sharesies and Bluesky. The Instagram detail comes from the conversation's supplied review excerpt. No review author was contacted.
+| Control or layout | Exact area to try | Reported distinction |
+| --- | --- | --- |
+| Liked-item grid | Tile, image and visible post/profile link separately | A supplied review excerpt reported changes in both the source and new tab. |
+| Investment navigation | Search result versus a holding or investment row in an existing account | A review reported working search navigation but no result from a personal investment view. |
+| Feed and comment cards | Empty card area, timestamp, author/avatar and linked image separately | A review reported double-opening and source history changes; image lightboxes are a separate case. |
 
-## From the earlier README: retest rather than assume compatibility
+Source: [extension reviews](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/) and review excerpts supplied during development. The live review page was unavailable to the research tool; some reports came from its search index. No review author was contacted.
 
-The old README called these sites “confirmed working,” but the supplied source/tests do not establish those claims for this build. Bluesky is already covered above.
+## General navigation and layout coverage
 
-| Site | Exact area/control to try | Useful distinction |
-|---|---|---|
-| [YouTube](https://www.youtube.com/) | Search results and recommendations: video title, thumbnail, channel name; then playlist entries. | A thumbnail/title link should navigate; Play/queue/menu controls are actions. [Official navigation help](https://support.google.com/youtube/answer/2398242). |
-| [Reddit](https://www.reddit.com/) | Feed post title, blank card area, comments link, subreddit name and image preview. Try card and compact views if offered. | The card can contain several different destinations and non-navigation controls. |
-| [X](https://x.com/) | Timeline/search: post background, timestamp, avatar and media. | A post URL and an image viewer are different cases. Sign-in and access requirements may limit testing. |
-| [Spotify web player](https://open.spotify.com/) | Search: album/playlist artwork versus title text. Then Your Library entries and artist links. | Middle-click should not start playback in the source. A non-link part of an album card may be unsupported. [Official web-player help](https://support.spotify.com/us/article/web-player-help/). |
-| [GitHub](https://github.com/) | Repository file names, issue/PR list titles and author links. Repeat after navigating within the repository. | Good direct-link comparison against app-like list navigation. Do not use merge/edit controls as navigation tests. |
-| [Twitch](https://www.twitch.tv/) | Browse/category results: channel thumbnail, stream title, channel name and category tile. | Verify the original stream/playback does not change while a channel URL opens elsewhere. |
+Earlier compatibility claims did not establish complete coverage. Check concrete controls across multiple unrelated layouts.
 
-## Additional challenging interactive websites
+| Structure | Try separately | Useful distinction |
+| --- | --- | --- |
+| Video recommendations | Title, thumbnail, channel name and playlist entry | Navigation versus playback, queue and menu actions |
+| Post and story cards | Title, background, timestamp, comments and image | Multiple destinations within one container |
+| Media libraries | Artwork, title, creator and saved-library entries | Associated title navigation versus source playback |
+| File and issue lists | Row title, row whitespace and author link | Direct links versus app-style list navigation |
+| Image boards | Image, title, collection tile and creator link | Navigation versus Save or other nested actions |
+| Chat navigation | Existing text-channel entry, search-result jump and message link | Addressable destinations versus scrolling or voice actions |
+| Document workspaces | Sidebar page, nested page and database card | Full navigation versus overlaid previews or expansion |
+| Task boards | Board tile, card title, card body and direct card link | Dialog presentation with or without a separate destination |
+| Mail views | Sample message subject/row, label and ordinary link | Navigation and shared read-state changes |
+| File storage | Sample folder, document row and image/PDF preview | Folder navigation versus viewer controls |
+| Map interfaces | Result name/card, map marker and explicit page link | Destination URLs versus selection on a canvas |
 
-These are proposed stress tests. They have not been tested with this extension, and this list does not assert which JavaScript framework each currently uses.
-
-| Site | Exact area/control to try | What it challenges |
-|---|---|---|
-| [Pinterest](https://www.pinterest.com/) | Search/home feed Pin image and title; then a board tile and creator/profile link. | Large image cards with several nested actions. A Save button is an action, not a destination. [Official guide](https://help.pinterest.com/en/guide/all-about-pinterest). |
-| [Discord web](https://discord.com/app) | An existing server's text-channel entry, search-result jump and a visible message link. | App-style navigation and scroll-to-message actions. A voice-channel entry is not a normal page link. [Official browser/server/channel overview](https://support.discord.com/hc/en-us/articles/360045138571-Beginner-s-Guide-to-Discord). |
-| [Notion](https://www.notion.so/) | Sidebar page name, nested page link and database page/card in a sample workspace. | Similar-looking controls can open a full page or an overlaid preview. Expand arrows should not open tabs. [Official sidebar guide](https://www.notion.com/help/navigate-with-the-sidebar). |
-| [Trello](https://trello.com/) | Board tile, card title/card body and a direct card link on a test board. | A card can have its own URL while normally appearing in a dialog. Zero tabs may reveal a hidden-address control. [Official card help](https://support.atlassian.com/trello/docs/adding-cards/). |
-| [Gmail](https://mail.google.com/) | A test-message subject/row, a label in the sidebar and a normal web link inside a message. | Message rows and labels versus ordinary links. A new tab opening the message may mark it read through shared account state. |
-| [Google Drive](https://drive.google.com/) | A sample folder row/tile, document-name row and a PDF/image preview item. | Folder navigation, document navigation and previews have different semantics. [Official file-opening guidance](https://support.google.com/drive/answer/2423485). |
-| [Google Maps](https://maps.google.com/) | Search for a place; try a result's name/card, a map pin and the place panel's website link separately. | Canvas/map interactions versus explicit website addresses. A map pin can be a selection action rather than a page link. [Official search guide](https://support.google.com/maps/answer/3092445). |
-
-For this diagnostic build, first record the reported button and wait 10 seconds for its outcome summary. Preserve the existing X, Spotify and Bluesky results while gathering evidence. Then test Instagram, Sharesies, Pinterest and Google Maps. Then work through the rest. A dozen carefully recorded controls is more useful than a blanket “works on this website.”
+For this historical diagnostic build, first record the reported control and wait 10 seconds for its outcome summary. Retest the previously working story, artwork and feed controls, then the unresolved grids, account rows and navigation panels. Record each control's result separately.
 
 ## Result sheet
 

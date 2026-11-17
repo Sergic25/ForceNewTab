@@ -19,7 +19,7 @@ All nine navigation modules are byte-identical between the public source and the
 
 ## Real-world feedback
 
-The maintainer confirmed that the Canva Login control now opens its popup in the copied tab. Earlier feedback reported success for tested Bluesky controls, Spotify artwork/navigation, X news cards and the Questrade account-navigation control. These are specific reported results, not guarantees for every control on those sites. Signed-in Sharesies and Instagram Likes remain unverified.
+The maintainer confirmed that a tested login control opens its dialog in the copied tab. Earlier feedback reported success for tested feed controls, artwork links, story cards and account navigation. These are individual observations, not guarantees for every control with a similar appearance. Other reported signed-in investment-navigation and liked-item grid cases remain unverified.
 
 ## Distribution status and remaining work
 

@@ -52,7 +52,7 @@
     if (!declineReasons.has(reason)) reason = "target-unavailable";
     void send({type: "fnt-isolate-declined", reason});
   }
-  function tryStart(target, gesture) {
+  function tryStart(target) {
     if (!toolbar || !topFrame() || !safePage(read(() => location.href)) ||
         !globalThis.FNTIsolationTarget || !unresolved(target)) return null;
     const beforeURL = location.href;

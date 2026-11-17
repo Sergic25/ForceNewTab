@@ -1,21 +1,22 @@
-# Force New Tab 2.0.1
+# Force New Tab 2.0.2
 
-A major update to middle-click support for links, cards, images and JavaScript-driven buttons.
+Improved middle-click support for blank areas within cards.
 
-- Broader automatic destination finding across websites, with no site-specific address lists or feature switches.
-- Difficult controls can open in a background copy after direct methods are exhausted. Copied pages wait for their matching button to settle before a single press. The maintainer has confirmed the tested Canva Login popup now works.
-- Updated purple ON / grey OFF fist artwork, centered and enlarged with the trailing wrist lines removed.
-- A clearer README and update page, with links to report non-working websites through [GitHub Issues](https://github.com/Sergic25/ForceNewTab/issues/new/choose) or [Firefox extension reviews](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/reviews/).
-- The public build has no click recorder. The diagnostic version remains available on the [testing branch](https://github.com/Sergic25/ForceNewTab/tree/testing), outside normal Releases.
+- Matching heading and thumbnail links can identify a card's destination from its surrounding whitespace.
+- Clear matches open directly without activating the original card; nested action controls, unrelated cards and ambiguous destinations are excluded from the new rule.
+- Minor code cleanup removes an unloaded stub and an unused function parameter, and reads status build versions from the manifest.
+- The public extension excludes testing-only click recording tools and their interface. Existing fallback behavior, toolbar scope and timeouts are unchanged.
 
-## Installation
+The maintainer reported no issues during testing. All 15 public regression suites and five diagnostic suites pass. Package parity checks verify identical navigation code across testing and public builds. Mozilla validation reported no errors or warnings.
 
-Requires **Firefox 147 or newer**. The attached XPI is **unsigned**: this GitHub release is not a Mozilla-approved update and does not automatically update installed add-ons. Mozilla submission and signing are still pending.
+## Downloads and installation
 
-For a temporary test, extract the source ZIP and choose its `manifest.json` through **about:debugging → This Firefox → Load Temporary Add-on**. Temporary installation ends when Firefox restarts. For the currently Mozilla-distributed version, use [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/).
+Requires **Firefox 147 or newer**. The GitHub XPI is **unsigned**. For normal installation, use the [Firefox Add-ons listing](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/). Version 2.0.2 was submitted to Mozilla on November 16, 2026; publication was pending at submission.
 
-## Expectations
+Release downloads contain the exact public XPI and reproducible source archive submitted to Mozilla, plus SHA-256 checksums. The source archive includes developer tests and diagnostic sources; these are excluded from the public XPI. Documentation in that frozen archive may describe its earlier testing status.
 
-Known destinations open promptly; the copied-page fallback can take up to 15 seconds. A website can still refuse an automatic click, fail to reproduce a popup, or change the original page during the final fallback. Individual successful site tests do not guarantee every control works.
+To build from source, run `node tools/build.cjs` and load `dist/ship/manifest.json` temporarily through **about:debugging → This Firefox → Load Temporary Add-on**. Use `dist/testing/manifest.json` only when diagnostic tools are needed. Temporary installations end when Firefox restarts.
 
-All 15 public automated suites pass. These simulate browser behavior; the Canva result is the maintainer's live feedback. See [verification details](https://github.com/Sergic25/ForceNewTab/blob/main/TEST-RESULTS.md).
+Some controls can still change the original page during the final fallback, and copied tabs share website account state. Automated tests and individual successful tests do not guarantee every control works.
+
+[Browse or report issues](https://github.com/Sergic25/ForceNewTab/issues) · [Project documentation](https://github.com/Sergic25/ForceNewTab)

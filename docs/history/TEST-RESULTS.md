@@ -6,7 +6,7 @@ Earlier build results follow. Current results are in the root TEST-RESULTS.md.
 
 # 4.2.5 passive tab switching and fallback priority
 
-The user confirmed that 4.2.4 ordinary middle-click worked for the tested Questrade control after a wait and for the tested Bluesky login/signup controls. Selecting the copy too soon still cancelled preparation. This revision separates passive viewing from actual page input; the new behavior still needs a live Firefox retest.
+The user confirmed that 4.2.4 ordinary middle-click worked for the tested account-navigation control after a wait and for the tested feed login/signup controls. Selecting the copy too soon still cancelled preparation. This revision separates passive viewing from actual page input; the new behavior still needs a live Firefox retest.
 
 Changes are confined to the copy modules and their tests, current help and build metadata. Selecting a tab or changing focus no longer invalidates preparation. Trusted pointer/typing input in the worker clears its prepared target synchronously and notifies the authenticated background operation. Tab-navigation keys and pure modifiers are excluded. Input before the first ready response is remembered, including while the document loads. A used nonce takes precedence over later negative replies, settings or URL changes, preventing source replay after possible activation. The background rechecks interaction after asynchronous cleanup lookup and retains an interacted copy. Other source/copy context, navigation, option and at-most-once checks remain.
 
@@ -20,13 +20,13 @@ Unchanged core/resolution modules and all four fist icons are byte-compared agai
 
 # 4.2.4 ordinary middle-click entry
 
-The user confirmed4.2.3 succeeded on the reported Questrade New account button after about10seconds. The earlier cancelled result was caused by selecting the copy while preparation was still underway; statuscopy-used/activatedfalse matched that user confirmation. This verifies that specific live control under the Shift-based4.2.3 test, not all websites or the new ordinary-click entry.
+The user confirmed4.2.3 succeeded on the reported New account button after about10seconds. The earlier cancelled result was caused by selecting the copy while preparation was still underway; statuscopy-used/activatedfalse matched that user confirmation. This verifies that specific live control under the Shift-based4.2.3 test, not all websites or the new ordinary-click entry.
 
 This revision removes the Shift-required source gate only. The existing feature setting remains saved and defaultsOFF for fresh installations. Known destinations bypass isolation, while eligible unresolved controls now use the copy with ordinary middle-click whenenabled. Source/core, locator, worker protocol, context checks, timeouts, cancellation and at-most-once behavior are otherwise retained. No hostname rules or permissions were added.
 
 All20 packaged suites pass. Isolation-content42checks cover ordinary,false/missingmodifier metadata, preferencechanges, knownroutebypass, exclusions andworkerinterop. Combined core/source28checks andopen-shadow21checks cover plainmiddlecopying, optionOFFlegacyfallback, knownplainfastpaths, no extra copy onduplicateauxclick, and one copied nativeactivation. Prior Shift/cancellation tests remain because Shift is still accepted but no longer required. UIchecks verify updatedwording andsavedstate. Existing originalcore/discovery/resolver/compatibility suites remain.
 
-Automated checks use mocked DOM/browser objects;4.2.4 ordinarymiddle needs a real Firefox retest. The older standalone outcome-observer behavior gap remains documented and was not retried. The prior live Questrade result is recorded as user-confirmed, not as native automation performed here.
+Automated checks use mocked DOM/browser objects;4.2.4 ordinarymiddle needs a real Firefox retest. The older standalone outcome-observer behavior gap remains documented and was not retried. The prior live account-navigation result is recorded as user-confirmed, not as native automation performed here.
 
 ## Historical verification
 
@@ -42,7 +42,7 @@ All20 packaged suites pass in simulated DOM/browser environments. Background57ch
 
 The new request observer returnsundefined so it cannot consume the actual response. It records request categories only, without copying target labels or source URLs. Authenticated rejectionstatus savesfixedreason/build/version andmatchboolean; foreignsender failures donotwrite status. The previous outcome-observer standalone behavioral test gap remains and was not retried.
 
-The exact Questradecause andsuccessful nativeFirefoxcopy remain unverified. No gesture-release, blur or ordinary-navigation behavior was changed in this revision.
+The exact cause of the reported account-page failure and a successful native Firefox copy remain unverified. No gesture-release, blur or ordinary-navigation behavior was changed in this revision.
 
 Primary Firefox source checkedOctober25,2026:
 - https://raw.githubusercontent.com/mozilla-firefox/firefox/main/toolkit/components/extensions/ConduitsParent.sys.mjs (fillInAddress andrecvConduitOpened)
@@ -52,7 +52,7 @@ Primary Firefox source checkedOctober25,2026:
 
 # 4.2.2 open-component copy matching and decline reporting
 
-The 4.2.1 report established a held Shift modifier, module availability, enabled toolbar/experiment and top-level frame. Original source discovery armed at79ms, captured a destination at104ms and a related tab appeared at169ms. Thus the legacy path still ran. No copy result was included; this favors source preflight rejection but does not prove exactly which check failed. Open shadow-root exclusion was a concrete unsupported structure in the old locator, not a confirmed Questrade diagnosis.
+The 4.2.1 report established a held Shift modifier, module availability, enabled toolbar/experiment and top-level frame. Original source discovery armed at79ms, captured a destination at104ms and a related tab appeared at169ms. Thus the legacy path still ran. No copy result was included; this favors source preflight rejection but does not prove exactly which check failed. Open shadow-root exclusion was a concrete unsupported structure in the old locator, not a confirmed diagnosis for the reported account-page failure.
 
 The copy locator now supports bounded accessible open shadow roots via a version2 descriptor. Version1 light-DOM descriptors are preserved. Each host is uniquely matched in its recorded parent scope using generic tag/stable attributes/custom ancestry; the final control must match uniquely in the selected root. Host chain and control are rechecked, forms/editing/hidden/disabled boundaries are honored across hosts, and closed/inaccessible or ambiguous roots reject. Limits remain2000 candidates perquery,8000 aggregate,8 shadowlevels and4000 descriptorcharacters. No website host, fixed route or site-specific component name is present in loaded runtime code.
 
@@ -62,7 +62,7 @@ Core content.js,resolver,React app-data reader,discovery andnormalbackground mod
 
 The new request cap7000 accommodates a descriptor plus bounded original URL andmetadata. Decline reasons arefixedenumerated identifiers; no labels, hostattribute values, source URLs, nonces, form data or error text are saved in status/audit. Background context validation andsingleactivation semantics remain.
 
-No native Firefox/Questrade success is claimed. The old standalone outcome-observer behavior test gap remains documented and was not retried here. Official DOM reference: https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot and https://developer.mozilla.org/en-US/docs/Web/API/Node/getRootNode .
+No native Firefox success for the account control is claimed. The old standalone outcome-observer behavior test gap remains documented and was not retried here. Official DOM reference: https://developer.mozilla.org/en-US/docs/Web/API/Element/shadowRoot and https://developer.mozilla.org/en-US/docs/Web/API/Node/getRootNode .
 
 ## Historical verification
 
@@ -76,13 +76,13 @@ All 19 packaged suites pass. Added coverage uses the actual core, resolver and i
 
 The record adds boolean modifier and mode flags plus a bounded ending-input category. Typed characters, form values and raw key strings are not stored. The older standalone outcome-observer behavior test execution remained blocked by automatic approval review and was not retried; the small observer modifier filter has syntax/static review and background schema tests, while actual native event timing remains unverified.
 
-These are mocked DOM/browser tests, not a native Firefox/Questrade success. The black-source problem is still only addressed by the optional copy strategy, whose live operation needs the next test.
+These are mocked DOM/browser tests, not a native Firefox success for the account control. The black-source problem is still only addressed by the optional copy strategy, whose live operation needs the next test.
 
 ## Historical verification
 
 # 4.2.0 isolated-copy experiment verification
 
-This build adds a separate, off-by-default Shift + middle-click experiment. A known resolved destination bypasses it; ordinary middle-click uses the existing fallback. No website hostnames, guessed account URLs, route templates, new permissions or icon changes are added. No real Questrade result is claimed yet.
+This build adds a separate, off-by-default Shift + middle-click experiment. A known resolved destination bypasses it; ordinary middle-click uses the existing fallback. No website hostnames, guessed account URLs, route templates, new permissions or icon changes are added. No live account-navigation result is claimed yet.
 
 All 18 packaged suites pass in simulated DOM/browser environments. Retained baseline suites still run. New coverage includes 32 locator cases, 28 source/worker cases, 41 background-operation cases and 19 new hook integrations plus 32 unchanged compatibility replays. Preferences adds two UI checks and one authenticated control-message check. Hidden/inert and non-rendered matching targets are excluded; layout checks run only after identity matching.
 
@@ -103,7 +103,7 @@ Official APIs checked October 25, 2026:
 
 # 4.1.4 button and outcome diagnostics
 
-The 4.1.3 X report resolved the owned story address before activation, and the user confirmed successful opening/source preservation for that control. Questrade's report showed an unresolved button. The user subsequently confirmed a correct new tab plus a changed title/partly black source view with unchanged source URL. Exact source-rendering failure and navigation channel are still unproven.
+The 4.1.3 story-card report resolved the owned story address before activation, and the user confirmed successful opening/source preservation for that control. The account-navigation report showed an unresolved button. The user subsequently confirmed a correct new tab plus a changed title/partly black source view with unchanged source URL. Exact source-rendering failure and navigation channel are still unproven.
 
 This build gathers button-owned address evidence and up to nine seconds of passive outcome observation. It does not change destination-selection or source-activation rules. SHA-256 comparisons preserve resolver.js, component-link.js, app-data.js, content.js, discovery.js, background.js and all fist icons exactly from 4.1.3. No new permission or website-specific rule is added.
 
@@ -137,7 +137,7 @@ flag types, getters, unrelated unknown fields, named/parameterized routes, query
 objects, incomplete or conflicting addresses still reject. Flag types are included
 in redacted diagnostic summaries; raw metadata values are not copied.
 
-No primary public source was found establishing X's exact anchorless semantics.
+No primary public source was found establishing the reported component's exact anchorless semantics.
 The flag's apparent display purpose is an inference, not a verified contract.
 The implementation is therefore a narrow opt-in compatibility experiment, not a
 claim that arbitrary boolean metadata can safely be ignored. Native Firefox
@@ -157,7 +157,7 @@ identical to the previous build. Permissions are unchanged. No site hostname,
 story ID conversion, title lookup or fixed destination was added. The experiment
 still defaults OFF and existing successful destinations bypass it.
 
-Tests simulate Firefox page objects and browser events; no real signed-in X
+Tests simulate Firefox page objects and browser events; no real signed-in story-card
 success is claimed. The next report should have diagnosticVersion 4.1.3 and can
 show whether the observed option is boolean or needs further investigation.
 
@@ -256,13 +256,13 @@ no-execution/no-regression guarantee is claimed.
 
 This is a tested implementation of a route pattern observed in the real report,
 not a verified native Firefox result. All automated tests simulate DOM/browser
-and Firefox object wrappers. The actual X card requires a fresh Firefox retest
+and Firefox object wrappers. The actual reported card requires a fresh Firefox retest
 with diagnosticVersion 4.1.1. No browser policy was bypassed for verification.
 
 Current-tree verification follows independent bounded membership checks informed
 by React's documented source rather than calling any React/page functions:
-https://raw.githubusercontent.com/facebook/react/main/packages/react-reconciler/src/ReactFiberTreeReflection.js
-https://raw.githubusercontent.com/facebook/react/main/packages/react-reconciler/src/ReactWorkTags.js
+[React current-tree reflection](https://raw.githubusercontent.com/facebook/react/main/packages/react-reconciler/src/ReactFiberTreeReflection.js)
+[React work-tag definitions](https://raw.githubusercontent.com/facebook/react/main/packages/react-reconciler/src/ReactWorkTags.js)
 
 ## Historical 4.1.0 verification
 
@@ -306,17 +306,17 @@ click handlers/router methods. Reflection on Proxy objects can nevertheless run
 page traps. The option is experimental and off by default; there is no absolute
 no-execution/no-regression promise for arbitrary private page objects.
 
-No live signed-in X or native Firefox/Xray success is claimed. The available
+No live signed-in card or native Firefox/Xray success is claimed. The available
 browser tool rejected the local-file preview under its URL policy; no alternate
 browser or protocol was used to bypass it. Tests simulate Firefox page objects
-and browser APIs. The remaining verification is a report from the actual X card.
-A successful synthetic fixture is not presented as a verified fix for X.
+and browser APIs. The remaining verification is a report from the actual reported card.
+A successful synthetic fixture is not presented as a verified fix for the reported card.
 
 Primary implementation references (reviewed October 25, 2026):
 - Mozilla page-object access and its trust boundary:
   https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Sharing_objects_with_page_scripts
 - React current DOM props/fiber attachments and optional WeakMaps:
-  https://raw.githubusercontent.com/facebook/react/main/packages/react-dom-bindings/src/client/ReactDOMComponentTree.js
+  [React DOM component-tree implementation](https://raw.githubusercontent.com/facebook/react/main/packages/react-dom-bindings/src/client/ReactDOMComponentTree.js)
 - Vue's conditional DOM vnode/component attachments:
   https://raw.githubusercontent.com/vuejs/core/main/packages/runtime-core/src/renderer.ts
 
@@ -358,7 +358,7 @@ and label-enclosing anchors, exclusions, URL redaction, read exceptions, the 200
 anchor/20 timestamp limits and the 8000-character inspection-output limit.
 The complete report remains within its existing 22000-character receiver limit.
 
-No X source-page-change fix is claimed. The next report is needed to establish
+No fix for the reported story card's source-page change is claimed. The next report is needed to establish
 whether a safe DOM-based generic destination rule is available for this control.
 Existing generic navigation fallback can still execute page rendering code.
 
@@ -384,9 +384,9 @@ The report stays in browser.storage.local until cleared/replaced. It contains
 URL paths and limited element relationship IDs, which may identify content.
 No automatic upload, telemetry, full page text, form values or handler code.
 
-No X navigation fix is claimed. The supplied inner story HTML exposes no route;
+No fix for the reported story-card navigation is claimed. The supplied inner story HTML exposes no route;
 the optional report is intended to inspect the complete clicked ancestor path.
-User reported that the 4.0.0 Bluesky and Spotify behavior was working. This does
+User reported that the 4.0.0 feed and artwork-control behavior was working. This does
 not substitute for a live Firefox retest of the diagnostic build. Automated tests
 use mocked browser and DOM APIs; no native Firefox integration result is claimed.
 
