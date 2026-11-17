@@ -1,0 +1,122 @@
+name: Publish verified 2.0.2 packages
+
+on:
+  push:
+    branches:
+      - codex/publish-v2.0.2
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-force-new-tab-v2.0.2
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify packages and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          
+          repo = "Sergic25/ForceNewTab"
+          target = "9678e2acaecf741af6c7573d4632bacdd56141e8"
+          tag = "v2.0.2"
+          assets = [{"name":"force-new-tab-2.0.2-ship-unsigned.xpi","sha":"fde27ae086af2211e5b3e4f6e7a5bd4c18b06a1c"},{"name":"force-new-tab-2.0.2-source.zip","sha":"c1740b25299c431a90b9f2ec79a0dd876d85a1ff"},{"name":"force-new-tab-2.0.2-SHA256SUMS.txt","sha":"5a611471526195da8295411a64701e9f9d5f3b12"}]
+          notes = "# Force New Tab 2.0.2\n\nImproved middle-click support for blank areas within cards.\n\n- Matching heading and thumbnail links can identify a card's destination from its surrounding whitespace.\n- Clear matches open directly without activating the original card; nested action controls, unrelated cards and ambiguous destinations are excluded from the new rule.\n- Minor code cleanup removes an unloaded stub and an unused function parameter, and reads status build versions from the manifest.\n- The public extension excludes testing-only click recording tools and their interface. Existing fallback behavior, toolbar scope and timeouts are unchanged.\n\nThe maintainer reported no issues during testing. All 15 public regression suites and five diagnostic suites pass. Package parity checks verify identical navigation code across testing and public builds. Mozilla validation reported no errors or warnings.\n\n## Downloads and installation\n\nRequires **Firefox 147 or newer**. The GitHub XPI is **unsigned**. For normal installation, use the [Firefox Add-ons listing](https://addons.mozilla.org/en-US/firefox/addon/force-new-tab/). Version 2.0.2 was submitted to Mozilla on November 16, 2026; publication was pending at submission.\n\nRelease downloads contain the exact public XPI and reproducible source archive submitted to Mozilla, plus SHA-256 checksums. The source archive includes developer tests and diagnostic sources; these are excluded from the public XPI. Documentation in that frozen archive may describe its earlier testing status.\n\nTo build from source, run `node tools/build.cjs` and load `dist/ship/manifest.json` temporarily through **about:debugging → This Firefox → Load Temporary Add-on**. Use `dist/testing/manifest.json` only when diagnostic tools are needed. Temporary installations end when Firefox restarts.\n\nSome controls can still change the original page during the final fallback, and copied tabs share website account state. Automated tests and individual successful tests do not guarantee every control works.\n\n[Browse or report issues](https://github.com/Sergic25/ForceNewTab/issues) · [Project documentation](https://github.com/Sergic25/ForceNewTab)\n"
+          api = "https://api.github.com/repos/" + repo
+          
+          def request(url, method="GET", payload=None, binary=None):
+              headers = {
+                  "Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                  "Accept": "application/vnd.github+json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "ForceNewTab-release-upload",
+              }
+              data = binary
+              if payload is not None:
+                  data = json.dumps(payload).encode()
+                  headers["Content-Type"] = "application/json"
+              elif binary is not None:
+                  headers["Content-Type"] = "application/octet-stream"
+              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=120) as response:
+                      return json.load(response)
+              except urllib.error.HTTPError as error:
+                  if error.code == 404 and method == "GET":
+                      return None
+                  raise RuntimeError(f"GitHub request failed with HTTP {error.code}") from None
+          
+          if request(api + "/git/ref/heads/main")["object"]["sha"] != target:
+              raise RuntimeError("Main changed since package verification")
+          
+          existing_tag = request(api + "/git/ref/tags/" + tag)
+          if existing_tag and existing_tag["object"]["sha"] != target:
+              raise RuntimeError("Existing tag points to another commit")
+          
+          contents = {}
+          for asset in assets:
+              blob = request(api + "/git/blobs/" + asset["sha"])
+              data = base64.b64decode(blob["content"])
+              actual = hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest()
+              if actual != asset["sha"]:
+                  raise RuntimeError("Blob verification failed for " + asset["name"])
+              contents[asset["name"]] = data
+          
+          checksums = contents["force-new-tab-2.0.2-SHA256SUMS.txt"].decode("ascii")
+          for line in checksums.splitlines():
+              expected, name = line.split("  ", 1)
+              if hashlib.sha256(contents[name]).hexdigest() != expected:
+                  raise RuntimeError("Package checksum mismatch for " + name)
+          
+          release = request(api + "/releases/tags/" + tag)
+          if release is None:
+              release = request(api + "/releases", "POST", {
+                  "tag_name": tag,
+                  "target_commitish": target,
+                  "name": "Force New Tab 2.0.2",
+                  "body": notes,
+                  "draft": True,
+                  "prerelease": False,
+              })
+          
+          known = {asset["name"]: asset for asset in release["assets"]}
+          for name, data in contents.items():
+              expected_digest = "sha256:" + hashlib.sha256(data).hexdigest()
+              asset = known.get(name)
+              if asset is None:
+                  if not release["draft"]:
+                      raise RuntimeError("Published release is missing an expected asset")
+                  url = "https://uploads.github.com/repos/" + repo + "/releases/" + str(release["id"]) + "/assets?name=" + urllib.parse.quote(name)
+                  asset = request(url, "POST", binary=data)
+              if asset["size"] != len(data) or asset.get("digest") != expected_digest:
+                  raise RuntimeError("Uploaded asset verification failed for " + name)
+              print("Verified " + name)
+          
+          if release["draft"]:
+              release = request(api + "/releases/" + str(release["id"]), "PATCH", {
+                  "draft": False,
+                  "make_latest": "true",
+              })
+          
+          published_tag = request(api + "/git/ref/tags/" + tag)
+          if published_tag["object"]["sha"] != target:
+              raise RuntimeError("Published tag does not match the verified commit")
+          print("Published " + release["html_url"])
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("Published [" + release["name"] + "](" + release["html_url"] + ") with three checksum-verified assets.\n")
+          
+          PY

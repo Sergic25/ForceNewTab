@@ -1,0 +1,2 @@
+db47641174a62833e5944a5820e7c698fd6d129e8d0e3cd5bc5c49bc511b1d3c  force-new-tab-2.0.2-ship-unsigned.xpi
+7ece5d5aa74e1c9b77fb167c90498afd5b5200563c48284b2abd828243055487  force-new-tab-2.0.2-source.zip
